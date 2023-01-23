@@ -31,7 +31,6 @@ A tool to generate a list of potential resiliency risks across different service
 There are a number of circumstances in which this may not pose a risk including, development workloads, cost, or not viewing this workload as a business risk in the event of an AZ impacting event.
 
 The output is a csv file created locally and also uploaded to an S3 bucket (if provided).
-[Note: I am still cleaning up some of the code. But feel free to test it out]
 
 ## __2. Motivation__
 The intent is to help customers check their workloads for any obvious situations where there is a lack of Resiliency/high availability.
