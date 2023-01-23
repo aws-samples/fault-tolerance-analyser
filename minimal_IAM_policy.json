@@ -1,0 +1,184 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VPCEThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeVpcEndpoints"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "LambdaThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:ListFunctions"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "FSXThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "fsx:DescribeFileSystems"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "DMSThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "dms:DescribeReplicationInstances"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SGWThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "storagegateway:ListGateways"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CommonAPIsThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "sts:GetCallerIdentity",
+                "ec2:DescribeRegions",
+                "organizations:DescribeOrganization"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CommonAPIs",
+            "Effect": "Allow",
+            "Action": [
+                "organizations:DescribeAccount"
+            ],
+            "Resource": [
+                "arn:aws:organizations::<account_id>:account/o-*/*"
+            ]
+        },
+        {
+            "Sid": "DAXThatRequireWildcardResources",
+            "Effect": "Allow",
+            "Action": [
+                "dax:DescribeClusters"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "DXThatRequireWildcardResources",
+            "Effect": "Allow",
+            "Action": [
+                "directconnect:DescribeConnections",
+                "directconnect:DescribeVirtualInterfaces"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "Elasticache",
+            "Effect": "Allow",
+            "Action": [
+                "elasticache:DescribeReplicationGroups",
+                "elasticache:DescribeCacheClusters"
+            ],
+            "Resource": [
+                "arn:aws:elasticache:*:<account_id>:replicationgroup:*",
+                "arn:aws:elasticache:*:<account_id>:cluster:*"
+            ]
+        },
+        {
+            "Sid": "MemoryDB",
+            "Effect": "Allow",
+            "Action": [
+                "memorydb:DescribeClusters"
+            ],
+            "Resource": [
+                "arn:aws:memorydb:*:<account_id>:cluster/*"
+            ]
+        },
+        {
+            "Sid": "RDSAndDocumentDB",
+            "Effect": "Allow",
+            "Action": [
+                "rds:DescribeDBInstances",
+                "rds:DescribeDBClusters"
+            ],
+            "Resource": [
+                "arn:aws:rds:*:<account_id>:db:*",
+                "arn:aws:rds:*:<account_id>:cluster:*"
+            ]
+        },
+        {
+            "Sid": "Opensearch",
+            "Effect": "Allow",
+            "Action": [
+                "es:DescribeDomain",
+                "es:DescribeDomains"
+            ],
+            "Resource": [
+                "arn:aws:es:*:<account_id>:domain/*"
+            ]
+        },
+        {
+            "Sid": "OpensearchThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "es:ListDomainNames"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "AGA",
+            "Effect": "Allow",
+            "Action": [
+                "globalaccelerator:ListEndpointGroups",
+                "globalaccelerator:ListListeners"
+            ],
+            "Resource": [
+                "arn:aws:globalaccelerator::<account_id>:accelerator/*",
+                "arn:aws:globalaccelerator::<account_id>:accelerator/*/listener/*"
+            ]
+        },
+        {
+            "Sid": "AGAThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeInstances",
+                "globalaccelerator:ListAccelerators"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "EFS",
+            "Effect": "Allow",
+            "Action": [
+                "elasticfilesystem:DescribeFileSystems"
+            ],
+            "Resource": [
+                "arn:aws:elasticfilesystem:*:<account_id>:file-system/*"
+            ]
+        },
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::<bucket_name>/<output_folder_name>/*"
+            ]
+        }
+    ]
+}
