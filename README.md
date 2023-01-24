@@ -192,10 +192,9 @@ Optional arguments:
                         Log level. Needs to be one of the following: 'DEBUG','INFO','WARNING','ERROR','CRITICAL'
   --single-threaded     Use this option to specify if the service+region level information gathering threads in an account must run in parallel or not. Default is False, which means the script uses multi-threading by default.
   --truncate-output     Use this flag to make sure that if the output file already exists, the file is truncated. Default is False. Useful if you are invoking this script to refresh findings within the same day (on a different day,
-                        the output file will have a different file name)
+                        the output file will have a different file name). The default value of False is useful when invoking the script multiple times (say, if you have multiple accounts and are invoking the script once per account) so that all the findings go into the same csv file. This works well with the default mode of the next flag below.
   --filename-with-accountid
-                        Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are running the script for more than
-                        one account, and want all the accounts' findings to be in the same output file.
+                        Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are running the script multiple times (once for each account), and want all the accounts' findings to be in the same output file.
 
 ```
 
