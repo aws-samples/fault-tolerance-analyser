@@ -110,7 +110,7 @@ python3 account_resiliency_analyser.py \
     --truncate-output
 ```
 
-In the command above, the script is run for the us-east-1 region, and looks at the services Lambda, Opensearch, Document DB and RDS. It generates the csv file and uploads it to the bucket test-bucket. The truncate-output option ensures that if there is any existing file it is truncated before the findings are added.
+In the command above, the script is run for the us-east-1 region, and looks at the services Lambda, Opensearch, Document DB and RDS. It generates the csv file and writes it to the output sub folder in the folder it is run. The truncate-output option ensures that if there is any existing file it is truncated before the findings are added.
 
 Once the script finishes, check the subfolder output/ and you will see 2 files like below.
 
@@ -154,7 +154,7 @@ account_id,region,service,result,error_message,start_time,end_time,runtime_in_se
 625787456381,Overall,Overall,N/A,N/A,2022_11_29_16_20_42_+0000,2022_11_29_16_20_45_+0000,2.68
 ```
 
-The same files will also be pushed to an S3 bucket if you provide a bucket name as a command line argument. When you provide a bucket, please make sure the bucket is properly secured as the output from this tool will be written to that bucket.
+The same files will also be pushed to an S3 bucket if you provide a bucket name as a command line argument. When you provide a bucket, please make sure the bucket is properly secured as the output from this tool will be written to that bucket, and it could contain sensitive information (like names of RDS instances or other configuration detail) that you might not want to share widely.
 
 
 Use the option --help to look at all the options. Here are the options.
@@ -229,7 +229,7 @@ Customers that have chosen to deploy a One Zone class of storage, should ensure 
 For customers identified that are running a Standard class EFS deployment, where multi-az replication is provided by the service, they have only a single mount target to access their file systems.  If an availability issue were to occur in that availability zone, the customer would lose access to the EFS deployment, even though other AZs/subnets were unaffected.
 
 ### 6.6 Opensearch
-Any single-node domains, as well as OpenSearch domains with multiple nodes all deployed within the same Availability Zone would be tagged as a potential risk by this tool.
+Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be tagged as a potential risk by this tool.
 
 ### 6.7 FSx
 Any FSx Windows systems deployed as Single-AZ is tagged as a potential risk by this tool.
@@ -243,7 +243,7 @@ Reference: https://docs.aws.amazon.com/lambda/latest/dg/security-resilience.html
 ### 6.9 Elasticache
 The following clusters are tagged as potential Single AZ risks
 
-1. All Memcached clustesr - Data is not replicated between memcached cluster nodes. Even if a customer has deployed nodes across multiple availability zones, the data present on any nodes that have a loss of availability (related to those hosts or their AZ) will result in the data in those cache nodes being unavailable as well.
+1. All Memcached clusters - Data is not replicated between memcached cluster nodes. Even if a customer has deployed nodes across multiple availability zones, the data present on any nodes that have a loss of availability (related to those hosts or their AZ) will result in the data in those cache nodes being unavailable as well.
 
 2. Redis clusters - The following clusters are taggeed as a risk  
   2.1 Any single node clusters  
