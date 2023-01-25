@@ -191,7 +191,12 @@ class AccountResiliencyAnalyser():
             if self.lock.acquire():
                 with open(self.output_file_full_path, 'a', newline='') as output_file:
                     dict_writer = csv.DictWriter(output_file, self.keys)
-                    dict_writer.writerows(findings)
+                    if utils.config_info.report_only_risks: #If the "report-only-risks" flag is set, go through each finding and write out only those that are identified as a potential risk
+                        for finding_rec in findings:
+                            if finding_rec['potential_single_az_risk']:
+                                dict_writer.writerow(finding_rec)
+                    else: #If the "report-only-risks" flag is not set, then Write all findings
+                        dict_writer.writerows(findings)
                 self.lock.release()
 
     def get_account_level_information(self):

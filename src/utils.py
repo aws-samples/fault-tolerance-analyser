@@ -27,6 +27,7 @@ class ConfigInfo:
     account_id: str
     truncate_output: bool
     filename_with_accountid: bool
+    report_only_risks: bool
 
 all_services = ['vpce',
                 'dms',
@@ -223,6 +224,9 @@ def get_config_info():
                         By default this is False, meaning, account id will not be in the file name. 
                         The default mode is useful if you are running the script for more than one account,
                         and want all the accounts' findings to be in the same output file.''')
+    optional_params_group.add_argument('--report-only-risks', action='store_true', dest='report_only_risks',
+                        default=False,
+                        help="Use this flag to report only findings that are potential risks. Resources that have no identified risks will not appear in the final csv file. Default is to report all findings.")
     args = parser.parse_args()
 
     #Set up logging
@@ -246,7 +250,8 @@ def get_config_info():
                             bucket_name = args.bucket_name,
                             account_id = '',
                             truncate_output = args.truncate_output,
-                            filename_with_accountid = args.filename_with_accountid
+                            filename_with_accountid = args.filename_with_accountid,
+                            report_only_risks = args.report_only_risks
                 )
 
 
