@@ -193,6 +193,8 @@ Optional arguments:
   --truncate-output     Use this flag to make sure that if the output file already exists, the file is truncated. Default is False. Useful if you are invoking this script to refresh findings within the same day (on a different day, the output file will have a different file name)
   --filename-with-accountid
                         Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are running the script for more than one account, and want all the accounts' findings to be in the same output file.
+  --report-only-risks   Use this flag to report only findings that are potential risks. Resources that have no identified risks will not appear in the final csv file. Default is to report all findings.
+
 ```
 
 ## __6. Functional Design__
