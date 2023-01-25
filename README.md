@@ -161,27 +161,26 @@ Use the option --help to look at all the options. Here are the options.
 
 ```
 python3 account_resiliency_analyser.py --help
-usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL}
-                                      [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...] -r REGIONS [REGIONS ...] [-h] [-o OUTPUT_FOLDER_NAME] [-b BUCKET_NAME]
-                                      [--aws-profile AWS_PROFILE_NAME] [--aws-assume-role AWS_ASSUME_ROLE_NAME] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--single-threaded] [--truncate-output] [--filename-with-accountid]
+usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...] -r REGIONS [REGIONS ...] [-h] [-m MAX_CONCURRENT_THREADS]
+                                      [-o OUTPUT_FOLDER_NAME] [-b BUCKET_NAME] [--aws-profile AWS_PROFILE_NAME] [--aws-assume-role AWS_ASSUME_ROLE_NAME] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--single-threaded] [--truncate-output] [--filename-with-accountid]
 
 Generate resiliency findings for different services
 
 Required arguments:
   -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...]
-                        Indicate which service(s) you want to fetch resiliency findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax', 'globalaccelerator', 'rds',
-                        'memorydb', 'dx']. Use 'ALL' for all services
+                        Indicate which service(s) you want to fetch resiliency findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax', 'globalaccelerator', 'rds', 'memorydb', 'dx']. Use 'ALL' for all services
   -r REGIONS [REGIONS ...], --regions REGIONS [REGIONS ...]
                         Indicate which region(s) you want to fetch resiliency findings for. Use "ALL" for all approved regions
 
 Optional arguments:
   -h, --help            show this message and exit
+  -m MAX_CONCURRENT_THREADS, --max-concurrent-threads MAX_CONCURRENT_THREADS
+                        Maximum number of threads that will be running at any given time. Default is 20
   -o OUTPUT_FOLDER_NAME, --output OUTPUT_FOLDER_NAME
-                        Name of the folder where findings output csv file and the run report csv file will be written. If it does not exist, it will be created. If a bucket name is also provided, then the folder will be looked for
-                        under the bucket, and if not present, will be created If a bucket name is not provided, then this folder will be expected under the directory in which the script is ran. In case a bucket is provided, the files
-                        will be generated in this folder first and then pushed to the bucket Please ensure there is a forward slash '/' at the end of the folder path Output file name will be of the format
-                        Resiliency_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_123456789101_TestAccount_2022_11_01.csv If you do not use the --filename-with-accountid option,
-                        the output file name will be of the format: Resiliency_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_2022_11_01.csv
+                        Name of the folder where findings output csv file and the run report csv file will be written. If it does not exist, it will be created. If a bucket name is also provided, then the folder will be looked for under the bucket, and if not present, will be created If a bucket name is not
+                        provided, then this folder will be expected under the directory in which the script is ran. In case a bucket is provided, the files will be generated in this folder first and then pushed to the bucket Please ensure there is a forward slash '/' at the end of the folder path Output file
+                        name will be of the format Resiliency_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_123456789101_TestAccount_2022_11_01.csv If you do not use the --filename-with-accountid option, the output file name will be of the format:
+                        Resiliency_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_2022_11_01.csv
   -b BUCKET_NAME, --bucket BUCKET_NAME
                         Name of the bucket where findings output csv file and the run report csv file will be uploaded to
   --aws-profile AWS_PROFILE_NAME
@@ -190,12 +189,10 @@ Optional arguments:
                         Use this option if you want the aws profile to assume a role before querying Org related information
   --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Log level. Needs to be one of the following: 'DEBUG','INFO','WARNING','ERROR','CRITICAL'
-  --single-threaded     Use this option to specify if the service+region level information gathering threads in an account must run in parallel or not. Default is False, which means the script uses multi-threading by default.
-  --truncate-output     Use this flag to make sure that if the output file already exists, the file is truncated. Default is False. Useful if you are invoking this script to refresh findings within the same day (on a different day,
-                        the output file will have a different file name). The default value of False is useful when invoking the script multiple times (say, if you have multiple accounts and are invoking the script once per account) so that all the findings go into the same csv file. This works well with the default mode of the next flag below.
+  --single-threaded     Use this option to specify that the service+region level information gathering threads should not run in parallel. Default is False, which means the script uses multi-threading by default. Same effect as setting max-running-threads to 1
+  --truncate-output     Use this flag to make sure that if the output file already exists, the file is truncated. Default is False. Useful if you are invoking this script to refresh findings within the same day (on a different day, the output file will have a different file name)
   --filename-with-accountid
-                        Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are running the script multiple times (once for each account), and want all the accounts' findings to be in the same output file.
-
+                        Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are running the script for more than one account, and want all the accounts' findings to be in the same output file.
 ```
 
 ## __6. Functional Design__

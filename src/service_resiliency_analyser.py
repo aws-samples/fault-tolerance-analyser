@@ -10,6 +10,7 @@ import logging
 import datetime
 
 class ServiceResiliencyAnalyser(metaclass = ABCMeta):
+
     def __init__ (self, account_analyser, region, service):
         self.service = service
         self.region = region
@@ -21,40 +22,43 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
     @utils.log_func
     def get_and_write_findings(self):
-        start = datetime.datetime.now().astimezone()
         
-        try:
-            self.get_findings()
-            self.account_analyser.write_findings(self.findings)
-            end = datetime.datetime.now().astimezone()
-            logging.info(f"Completed processing {self.service}+{self.region} in {round((end-start).total_seconds(), 2)} seconds.")
-            self.account_analyser.run_report.append(
-                                                        {   
-                                                        'account_id' : self.account_analyser.account_id,
-                                                        'region'  : self.region,
-                                                        'service' : self.service,
-                                                        'result'  :'Success',
-                                                        'error_message' :'',
-                                                        'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                        'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                        'runtime_in_seconds' : round((end-start).total_seconds(), 2)
-                                                        }
-                                                    )
-        except botocore.exceptions.BotoCoreError as error:
-            end = datetime.datetime.now().astimezone()
-            self.account_analyser.run_report.append(
-                                                        {   
-                                                        'account_id' : self.account_analyser.account_id,
-                                                        'region'  : self.region,
-                                                        'service' : self.service,
-                                                        'result'  :'Failure', 
-                                                        'error_message' : str(error), 
-                                                        'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                        'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                        'runtime_in_seconds' : round((end-start).total_seconds(), 2)
-                                                        }
-                                                    )
-            raise error
+        with self.account_analyser.thread_limiter:
+            start = datetime.datetime.now().astimezone()
+            
+            try:
+                self.get_findings()
+                self.account_analyser.write_findings(self.findings)
+                end = datetime.datetime.now().astimezone()
+                logging.info(f"Completed processing {self.service}+{self.region} in {round((end-start).total_seconds(), 2)} seconds.")
+                self.account_analyser.run_report.append(
+                                                            {   
+                                                            'account_id' : self.account_analyser.account_id,
+                                                            'region'  : self.region,
+                                                            'service' : self.service,
+                                                            'result'  :'Success',
+                                                            'error_message' :'',
+                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'runtime_in_seconds' : round((end-start).total_seconds(), 2)
+                                                            }
+                                                        )
+            except botocore.exceptions.BotoCoreError as error:
+                end = datetime.datetime.now().astimezone()
+                self.account_analyser.run_report.append(
+                                                            {   
+                                                            'account_id' : self.account_analyser.account_id,
+                                                            'region'  : self.region,
+                                                            'service' : self.service,
+                                                            'result'  :'Failure', 
+                                                            'error_message' : str(error), 
+                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'runtime_in_seconds' : round((end-start).total_seconds(), 2)
+                                                            }
+                                                        )
+                raise error
+            
 
     @abstractmethod
     def get_findings(self, region):
@@ -72,14 +76,4 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         curr_time = datetime.datetime.now().astimezone()
         finding_rec['timestamp'] = curr_time.strftime("%Y_%m_%d_%H_%M_%S_%z")
 
-        return finding_rec 
-
-RunReportRecord = namedtuple('RunReportRecord',
-                                [
-                                    'region',
-                                    'service',
-                                    'result',
-                                    'error_message',
-                                    'runtime_in_seconds'
-                                ]
-                            )
+        return finding_rec
