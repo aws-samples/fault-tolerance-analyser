@@ -60,6 +60,7 @@ class AccountResiliencyAnalyser():
         utils.get_config_info()
 
         self.account_id = utils.config_info.account_id
+        self.thread_limiter = threading.BoundedSemaphore(utils.config_info.max_concurrent_threads)
 
         #Write out an empty csv file with the headers
         self.keys = [

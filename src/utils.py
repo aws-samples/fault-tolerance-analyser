@@ -16,6 +16,7 @@ from dataclasses import dataclass
 class ConfigInfo:
     regions: list
     services: list
+    max_concurrent_threads: int
     output_folder_name: str
     log_level: str
     aws_profile_name: str
@@ -180,6 +181,10 @@ def get_config_info():
     optional_params_group = parser.add_argument_group('Optional arguments')
     optional_params_group.add_argument('-h', '--help', action="help", help = "show this message and exit")
 
+    optional_params_group.add_argument('-m', '--max-concurrent-threads', dest='max_concurrent_threads',
+                        default = 20,
+                        type=int,
+                        help='Maximum number of threads that will be running at any given time. Default is 20')
     optional_params_group.add_argument('-o', '--output', dest='output_folder_name',
                         default='output/',
                         type=regex_validator_generator(regex = r".+/$", desc_param_name = "Output folder name", custom_message = "Provide an output folder name where the findings csv and the run report csv will be placed"),
@@ -208,7 +213,7 @@ def get_config_info():
                         help="Log level. Needs to be one of the following: 'DEBUG','INFO','WARNING','ERROR','CRITICAL'")
     optional_params_group.add_argument('--single-threaded', action='store_true', dest='single_threaded',
                         default=False,
-                        help="Use this option to specify if the service+region level information gathering threads in an account must run in parallel or not. Default is False, which means the script uses multi-threading by default.")
+                        help="Use this option to specify that the service+region level information gathering threads should not run in parallel. Default is False, which means the script uses multi-threading by default. Same effect as setting max-running-threads to 1")
     optional_params_group.add_argument('--truncate-output', action='store_true', dest='truncate_output',
                         default=False,
                         help="Use this flag to make sure that if the output file already exists, the file is truncated. Default is False. Useful if you are invoking this script to refresh findings within the same day (on a different day, the output file will have a different file name)")
@@ -231,6 +236,7 @@ def get_config_info():
     config_info = ConfigInfo(
                             regions = [],
                             services = [],
+                            max_concurrent_threads = args.max_concurrent_threads,
                             output_folder_name = args.output_folder_name,
                             log_level = args.log_level,
                             aws_profile_name = args.aws_profile_name,
