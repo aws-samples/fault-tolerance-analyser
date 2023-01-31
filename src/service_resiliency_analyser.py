@@ -8,6 +8,8 @@ import botocore
 import time
 import logging
 import datetime
+import csv
+import json
 
 class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
@@ -16,9 +18,13 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         self.region = region
         self.account_analyser = account_analyser
         self.findings = []
+        self.session = None
 
     def get_aws_session(self):
-        return utils.get_aws_session(session_name = f"{self.service}_{self.region}_ResiliencyAnalyser")
+        if self.session:
+            return self.session
+        else:
+            return utils.get_aws_session(session_name = f"{self.service}_{self.region}_ResiliencyAnalyser")
 
     @utils.log_func
     def get_and_write_findings(self):
@@ -28,7 +34,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
             
             try:
                 self.get_findings()
-                self.account_analyser.write_findings(self.findings)
+                self.write_findings()
                 end = datetime.datetime.now().astimezone()
                 logging.info(f"Completed processing {self.service}+{self.region} in {round((end-start).total_seconds(), 2)} seconds.")
                 self.account_analyser.run_report.append(
@@ -77,3 +83,62 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         finding_rec['timestamp'] = curr_time.strftime("%Y_%m_%d_%H_%M_%S_%z")
 
         return finding_rec
+
+    def write_findings(self):
+        self.write_findings_to_file()
+        if utils.config_info.event_bus_arn:
+            self.publish_findings_to_event_bridge()
+
+    #This function will be called by the threads to write to the output file. So it must use a lock before opening and writing to the file.
+    def write_findings_to_file(self):
+
+        #Log findings
+        for finding_rec in self.findings:
+            if finding_rec['potential_single_az_risk']:
+                logging.error(finding_rec['message'])
+            else:
+                logging.info(finding_rec['message'])
+
+        #Write findings to output file
+        if len(self.findings) > 0:
+            keys = self.findings[0].keys()
+            if self.account_analyser.lock.acquire():
+                with open(self.account_analyser.output_file_full_path, 'a', newline='') as output_file:
+                    dict_writer = csv.DictWriter(output_file, self.account_analyser.keys)
+                    if utils.config_info.report_only_risks: #If the "report-only-risks" flag is set, go through each finding and write out only those that are identified as a potential risk
+                        for finding_rec in self.findings:
+                            if finding_rec['potential_single_az_risk']:
+                                dict_writer.writerow(finding_rec)
+                    else: #If the "report-only-risks" flag is not set, then Write all findings
+                        dict_writer.writerows(self.findings)
+                self.account_analyser.lock.release()
+
+    def publish_findings_to_event_bridge(self):
+        session = self.get_aws_session()
+
+        #Get the event bus region name from the event bus ARN. That region has to be used as cross region API calls are not permitted.
+        event_bus_region = (utils.parse_arn(utils.config_info.event_bus_arn))['region']
+
+        events = session.client("events", region_name = event_bus_region)
+
+        entries = []
+
+        for finding_rec in self.findings:
+            entries.append(
+                {
+                    'Time': datetime.datetime.now().astimezone(),
+                    'Source': 'ResiliencyAnalyser',
+                    #'Version' : 0,
+                    #'Region' : self.region,
+                    #'Account': self.account_analyser.account_id,
+                    'Resources': [
+                        finding_rec['resource_arn'],
+                    ],
+                    'DetailType': 'ResiliencyRisk',
+                    'Detail': json.dumps(finding_rec),
+                    'EventBusName' : utils.config_info.event_bus_arn
+                }
+            )
+        
+        response = events.put_events(Entries = entries)
+        logging.info(f"Published findings for {self.service} in {self.region} to Eventbridge")
