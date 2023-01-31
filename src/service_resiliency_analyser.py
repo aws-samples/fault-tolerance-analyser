@@ -86,7 +86,8 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
     def write_findings(self):
         self.write_findings_to_file()
-        if utils.config_info.event_bus_arn:
+        #If an event bus is provided publish any risks to event bridge
+        if (utils.config_info.event_bus_arn):
             self.publish_findings_to_event_bridge()
 
     #This function will be called by the threads to write to the output file. So it must use a lock before opening and writing to the file.
@@ -124,21 +125,18 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         entries = []
 
         for finding_rec in self.findings:
-            entries.append(
-                {
-                    'Time': datetime.datetime.now().astimezone(),
-                    'Source': 'ResiliencyAnalyser',
-                    #'Version' : 0,
-                    #'Region' : self.region,
-                    #'Account': self.account_analyser.account_id,
-                    'Resources': [
-                        finding_rec['resource_arn'],
-                    ],
-                    'DetailType': 'ResiliencyRisk',
-                    'Detail': json.dumps(finding_rec),
-                    'EventBusName' : utils.config_info.event_bus_arn
-                }
-            )
-        
-        response = events.put_events(Entries = entries)
-        logging.info(f"Published findings for {self.service} in {self.region} to Eventbridge")
+            if (not utils.config_info.report_only_risks) or (utils.config_info.report_only_risks and finding_rec['potential_single_az_risk']):
+                entries.append(
+                    {
+                        'Time': datetime.datetime.now().astimezone(),
+                        'Source': 'ResiliencyAnalyser',
+                        'DetailType': 'ResiliencyRisk',
+                        'Detail': json.dumps(finding_rec),
+                        'EventBusName' : utils.config_info.event_bus_arn
+                    }
+                )
+        if len(entries) > 0:
+            response = events.put_events(Entries = entries)
+            logging.info(f"Published findings for {self.service} in {self.region} to Eventbridge")
+        else:
+            logging.info(f"No findings to publish to Eventbridge for {self.service} in {self.region}")
