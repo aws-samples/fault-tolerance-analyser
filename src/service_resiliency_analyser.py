@@ -44,8 +44,8 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
                                                             'service' : self.service,
                                                             'result'  :'Success',
                                                             'error_message' :'',
-                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S%z"),
+                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S%z"),
                                                             'runtime_in_seconds' : round((end-start).total_seconds(), 2)
                                                             }
                                                         )
@@ -58,8 +58,8 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
                                                             'service' : self.service,
                                                             'result'  :'Failure', 
                                                             'error_message' : str(error), 
-                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                                            'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S%z"),
+                                                            'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S%z"),
                                                             'runtime_in_seconds' : round((end-start).total_seconds(), 2)
                                                             }
                                                         )
@@ -80,7 +80,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         finding_rec['region'] = self.region
 
         curr_time = datetime.datetime.now().astimezone()
-        finding_rec['timestamp'] = curr_time.strftime("%Y_%m_%d_%H_%M_%S_%z")
+        finding_rec['timestamp'] = curr_time.strftime("%Y_%m_%d_%H_%M_%S%z")
 
         return finding_rec
 

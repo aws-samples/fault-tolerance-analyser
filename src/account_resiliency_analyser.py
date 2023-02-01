@@ -138,8 +138,8 @@ class AccountResiliencyAnalyser():
                                 'service' : 'Overall',
                                 'result'  : 'N/A', 
                                 'error_message' : 'N/A',
-                                'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S%z"),
+                                'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S%z"),
                                 'runtime_in_seconds' : round((end-start).total_seconds(), 2)
                                 }
                             )

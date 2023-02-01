@@ -156,6 +156,9 @@ def services_validator(input_services):
 
 def bus_arn_validator(event_bus_arn):
 
+    if event_bus_arn is None:
+        return event_bus_arn
+
     arn_parts = parse_arn(event_bus_arn)
 
     #ARN is validated. Now check if the region is correct.

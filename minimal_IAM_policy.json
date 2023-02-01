@@ -179,6 +179,16 @@
             "Resource": [
                 "arn:aws:s3:::<bucket_name>/<output_folder_name>/*"
             ]
+        },
+        {
+            "Sid": "EventBusPermissions",
+            "Effect": "Allow",
+            "Action": [
+                "events:PutEvents"
+            ],
+            "Resource": [
+                "arn:aws:events:us-east-1:<account_id>:event-bus/<event_bus_name>"
+            ]
         }
     ]
 }
