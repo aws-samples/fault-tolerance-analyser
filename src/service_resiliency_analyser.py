@@ -124,6 +124,8 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
         entries = []
 
+        total_entries_count = 0
+
         for finding_rec in self.findings:
             if (not utils.config_info.report_only_risks) or (utils.config_info.report_only_risks and finding_rec['potential_single_az_risk']):
                 entries.append(
@@ -135,8 +137,12 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
                         'EventBusName' : utils.config_info.event_bus_arn
                     }
                 )
+                total_entries_count = total_entries_count+1
+                if len(entries) == 10: #Call put-events in batches of 10 each because the API does not accept more than that many events in 1 call.
+                    response = events.put_events(Entries = entries)
+                    events.clear()
+
         if len(entries) > 0:
             response = events.put_events(Entries = entries)
-            logging.info(f"Published findings for {self.service} in {self.region} to Eventbridge")
-        else:
-            logging.info(f"No findings to publish to Eventbridge for {self.service} in {self.region}")
+        
+        logging.info(f"Published {total_entries_count} finding(s) for {self.service} in {self.region} to Eventbridge")
