@@ -29,7 +29,8 @@
             "Sid": "DMSThatSupportAllResources",
             "Effect": "Allow",
             "Action": [
-                "dms:DescribeReplicationInstances"
+                "dms:DescribeReplicationInstances",
+                "dms:DescribeReplicationTasks"
             ],
             "Resource": "*"
         },
