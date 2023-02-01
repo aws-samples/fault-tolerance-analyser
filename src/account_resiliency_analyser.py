@@ -138,8 +138,8 @@ class AccountResiliencyAnalyser():
                                 'service' : 'Overall',
                                 'result'  : 'N/A', 
                                 'error_message' : 'N/A',
-                                'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S_%z"),
-                                'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S_%z"),
+                                'start_time' : start.strftime("%Y_%m_%d_%H_%M_%S%z"),
+                                'end_time' : end.strftime("%Y_%m_%d_%H_%M_%S%z"),
                                 'runtime_in_seconds' : round((end-start).total_seconds(), 2)
                                 }
                             )
@@ -174,30 +174,6 @@ class AccountResiliencyAnalyser():
 
         except botocore.exceptions.ClientError as error:
             logging.error(error)
-
-    #This function will be called by the threads to write to the output file. So it must use a lock before opening and writing to the file.
-    def write_findings(self, findings):
-
-        #Log findings
-        for finding_rec in findings:
-            if finding_rec['potential_single_az_risk']:
-                logging.error(finding_rec['message'])
-            else:
-                logging.info(finding_rec['message'])
-
-        #Write findings to output file
-        if len(findings) > 0:
-            keys = findings[0].keys()
-            if self.lock.acquire():
-                with open(self.output_file_full_path, 'a', newline='') as output_file:
-                    dict_writer = csv.DictWriter(output_file, self.keys)
-                    if utils.config_info.report_only_risks: #If the "report-only-risks" flag is set, go through each finding and write out only those that are identified as a potential risk
-                        for finding_rec in findings:
-                            if finding_rec['potential_single_az_risk']:
-                                dict_writer.writerow(finding_rec)
-                    else: #If the "report-only-risks" flag is not set, then Write all findings
-                        dict_writer.writerows(findings)
-                self.lock.release()
 
     def get_account_level_information(self):
         session = utils.get_aws_session(session_name = 'InitialAccountInfoGathering')

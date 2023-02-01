@@ -18,6 +18,7 @@ class ConfigInfo:
     services: list
     max_concurrent_threads: int
     output_folder_name: str
+    event_bus_arn: str
     log_level: str
     aws_profile_name: str
     aws_assume_role_name: str
@@ -122,11 +123,16 @@ def check_aws_credentials():
     except botocore.exceptions.ClientError as error:
         raise error
 
-def regions_validator(input_regions):
+def get_approved_regions():
     session = get_aws_session(session_name = 'ValidateRegions')
     ec2 = session.client("ec2", region_name='us-east-1')
     response = ec2.describe_regions()
     approved_regions = [region["RegionName"] for region in response["Regions"]]
+    return approved_regions
+
+def regions_validator(input_regions):
+
+    approved_regions = get_approved_regions()
 
     if 'ALL' in input_regions:
         if len(input_regions) == 1: #'ALL' is the only input
@@ -147,6 +153,39 @@ def services_validator(input_services):
             raise argparse.ArgumentTypeError(f"When providing 'ALL' as an input service, please do not provide any other services. 'ALL' implies the following services: {all_services}")
     else:
         return input_services
+
+def bus_arn_validator(event_bus_arn):
+
+    if event_bus_arn is None:
+        return event_bus_arn
+
+    arn_parts = parse_arn(event_bus_arn)
+
+    #ARN is validated. Now check if the region is correct.
+    if arn_parts['region'] == 'ALL':
+        raise argparse.ArgumentTypeError(f"Invalid region in event bus arn")
+    else:
+        approved_regions = get_approved_regions()
+        if arn_parts['region'] not in approved_regions:
+            raise argparse.ArgumentTypeError(f"{arn_parts['region']} is not in the list of approved regions for this account. Please provide an event bus in an approved regions")
+    
+    #Check if the resource is in the right format
+    bus_name_regex = r"^[A-Za-z0-9._-]{1,256}$"
+    bus_name_pattern = re.compile(bus_name_regex)
+
+    if arn_parts['resource_type'] != "event-bus":
+        raise argparse.ArgumentTypeError(f"Resource type '{arn_parts['resource_type']}' in the ARN is not valid for an event bus ARN. It should be 'event-bus'")
+    elif not bus_name_pattern.match(arn_parts['resource_id']):
+        raise argparse.ArgumentTypeError(f"{arn_parts['resource_id']} is not a valid bus name. Maximum of 256 characters consisting of numbers, lower/upper case letters, .,-,_.")
+
+    return event_bus_arn
+
+def arn_validator(arn):
+    regex = r"^arn:(aws|aws-gov|aws-cn):.*:.*:.*:.*/$"
+    pattern = re.compile(regex)
+    if not pattern.match(arn):
+        raise argparse.ArgumentTypeError(f"The provided ARN is invalid. Please provide a valid ARN. Ref: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html")
+    return arn
 
 def bucket_name_validator(bucket_name):
 
@@ -188,7 +227,8 @@ def get_config_info():
                         help='Maximum number of threads that will be running at any given time. Default is 20')
     optional_params_group.add_argument('-o', '--output', dest='output_folder_name',
                         default='output/',
-                        type=regex_validator_generator(regex = r".+/$", desc_param_name = "Output folder name", custom_message = "Provide an output folder name where the findings csv and the run report csv will be placed"),
+                        type=regex_validator_generator(regex = r".+/$", desc_param_name = "Output folder name",
+                        custom_message = "Provide an output folder name where the findings csv and the run report csv will be placed"),
                         help='''Name of the folder where findings output csv file and the run report csv file will be written. 
                             If it does not exist, it will be created. If a bucket name is also provided, then the folder will be looked for under the bucket, and if not present, will be created
                             If a bucket name is not provided, then this folder will be expected under the directory in which the script is ran. In case a bucket is provided, the files will be generated in this folder first and then pushed to the bucket
@@ -200,6 +240,11 @@ def get_config_info():
                         default = None,
                         type=bucket_name_validator,
                         help='Name of the bucket where findings output csv file and the run report csv file will be uploaded to')
+    optional_params_group.add_argument('--event-bus-arn', dest='event_bus_arn',
+                        default=None,
+                        type=regex_validator_generator(regex = r"arn:(aws|aws-gov|aws-cn):events:.*:.*:event-bus*/[A-Za-z0-9._-]{1,256}$", desc_param_name = "Event Bus ARN",
+                        custom_message = "Provide the ARN of an event bus in AWS Eventbridge to which findings will be published"),
+                        help='''ARN of the event bus in AWS Eventbridge to which findings will be published.''')
     optional_params_group.add_argument('--aws-profile', dest='aws_profile_name',
                         default=None,
                         type=maxlen_validator_generator(max_len = 250,desc_param_name = "AWS Profile name"),
@@ -242,6 +287,7 @@ def get_config_info():
                             services = [],
                             max_concurrent_threads = args.max_concurrent_threads,
                             output_folder_name = args.output_folder_name,
+                            event_bus_arn=args.event_bus_arn,
                             log_level = args.log_level,
                             aws_profile_name = args.aws_profile_name,
                             aws_assume_role_name = args.aws_assume_role_name,
@@ -262,6 +308,7 @@ def get_config_info():
     config_info.account_id = account_id
     config_info.regions = regions_validator(args.regions)
     config_info.services = services_validator(args.services)
+    config_info.event_bus_arn = bus_arn_validator(args.event_bus_arn)
 
 def invoke_aws_api_full_list (api_method, top_level_member, **kwargs):
 
@@ -275,3 +322,43 @@ def invoke_aws_api_full_list (api_method, top_level_member, **kwargs):
         response = api_method(NextToken = response['NextToken'], **kwargs)
         for response_item in response[top_level_member]:
             yield(response_item)
+
+def parse_arn(arn):
+    parts = arn.split(":")
+    if len(parts) == 7: #Follows the format "arn:partition:service:region:account-id:resource-type:resource-id"
+        result = {
+            'arn': parts[0],
+            'partition': parts[1],
+            'service': parts[2],
+            'region': parts[3],
+            'account_id': parts[4],
+            'resource_type': parts[5],
+            'resource_id': parts[6]
+        }
+    elif len(parts) == 6:
+        if "/" in parts[5]: #Follows the format "arn:partition:service:region:account-id:resource-type/resource-id"
+            resource_info = parts[5]
+            resource_parts = resource_info.split("/")
+            result = {
+                'arn': parts[0],
+                'partition': parts[1],
+                'service': parts[2],
+                'region': parts[3],
+                'account_id': parts[4],
+                'resource_type': resource_parts[0],
+                'resource_id': resource_parts[1],
+            }
+        else: #follows the format #Follows the format "arn:partition:service:region:account-id:resource-id"
+            result = {
+                'arn': parts[0],
+                'partition': parts[1],
+                'service': parts[2],
+                'region': parts[3],
+                'account_id': parts[4],
+                'resource_type': None,
+                'resource_id': parts[5],
+            }
+    else:
+        raise argparse.ArgumentTypeError(f"Invalid ARN. Does not follow the pattern defined here: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html")
+
+    return result
