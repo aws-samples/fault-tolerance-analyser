@@ -187,7 +187,7 @@
                 "events:PutEvents"
             ],
             "Resource": [
-                "arn:aws:events:us-east-1:<account_id>:event-bus/<event_bus_name>"
+                "arn:aws:events:<event-bus-region>:<account_id>:event-bus/<event_bus_name>"
             ]
         }
     ]
