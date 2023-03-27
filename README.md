@@ -21,6 +21,7 @@
   6.12 [Global Accelerator](#612-global-accelerator)  
   6.13 [Relational Database Service](#613-relational-database-service)   
   6.14 [Direct Connect](#614-direct-connect)  
+  6.15 [Direct Connect](#615-cloud-hsm)  
 7. [Non-Functional Design](#7-non-functional-design)
 8. [Security](#8-security)
 9. [License](#9-license)
@@ -170,9 +171,9 @@ usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,
 Generate resiliency findings for different services
 
 Required arguments:
-  -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...]
+  -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...]
                         Indicate which service(s) you want to fetch resiliency findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax',
-                        'globalaccelerator', 'rds', 'memorydb', 'dx']. Use 'ALL' for all services
+                        'globalaccelerator', 'rds', 'memorydb', 'dx', 'cloudhsm']. Use 'ALL' for all services
   -r REGIONS [REGIONS ...], --regions REGIONS [REGIONS ...]
                         Indicate which region(s) you want to fetch resiliency findings for. Use "ALL" for all approved regions
 
@@ -283,6 +284,11 @@ The following scenarios are tagged as potential risk by this tool:
 2. Any region where there is more than one direct connection, but all of them use the same location.
 3. Any Virtual Gateway with only one VIF
 4. Any Virtual Gateway with more than one VIF but all of the VIFs on the same direct connect Connection.
+
+### 6.15 Cloud HSM
+The following scenarios are tagged as potential risk by this tool:
+1. Any cluster with a single hsm.
+2. Any cluster with multiple hsms all of which are in a single AZ.
 
 ## __7. Non-Functional Design__
 

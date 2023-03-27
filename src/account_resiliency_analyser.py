@@ -26,6 +26,7 @@ from service_specific_analysers.globalaccelerator_analyser import GlobalAccelera
 from service_specific_analysers.rds_analyser import RDSAnalyser
 from service_specific_analysers.memorydb_analyser import MemoryDBAnalyser
 from service_specific_analysers.dx_analyser import DXAnalyser
+from service_specific_analysers.cloudhsm_analyser import CloudHSMAnalyser
 
 from collections import namedtuple
 
@@ -46,6 +47,7 @@ class AccountResiliencyAnalyser():
     analyser_classes['rds'] = RDSAnalyser
     analyser_classes['memorydb'] = MemoryDBAnalyser
     analyser_classes['dx'] = DXAnalyser
+    analyser_classes['cloudhsm'] = CloudHSMAnalyser
 
     def __init__ (self):
         #self.services = services
