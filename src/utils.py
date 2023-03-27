@@ -43,7 +43,8 @@ all_services = ['vpce',
                 'globalaccelerator',
                 'rds',
                 'memorydb',
-                'dx']
+                'dx',
+                'cloudhsm']
 
 #Use the below function,if needed, as print(json.dumps(db_instance,  default = json_serialise, indent = 4))
 def json_serialise(obj):
