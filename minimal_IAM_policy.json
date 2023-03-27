@@ -172,6 +172,16 @@
             ]
         },
         {
+            "Sid": "CloudHSMThatSupportAllResources",
+            "Effect": "Allow",
+            "Action": [
+                "cloudhsm:DescribeClusters"
+            ],
+            "Resource": [
+                "arn:aws:elasticfilesystem:*:<account_id>:file-system/*"
+            ]
+        },
+        {
             "Sid": "S3",
             "Effect": "Allow",
             "Action": [

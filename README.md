@@ -171,7 +171,7 @@ usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,
 Generate resiliency findings for different services
 
 Required arguments:
-  -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...]
+  -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...]
                         Indicate which service(s) you want to fetch resiliency findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax',
                         'globalaccelerator', 'rds', 'memorydb', 'dx', 'cloudhsm']. Use 'ALL' for all services
   -r REGIONS [REGIONS ...], --regions REGIONS [REGIONS ...]
