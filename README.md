@@ -21,7 +21,7 @@
   6.12 [Global Accelerator](#612-global-accelerator)  
   6.13 [Relational Database Service](#613-relational-database-service)   
   6.14 [Direct Connect](#614-direct-connect)  
-  6.15 [Direct Connect](#615-cloud-hsm)  
+  6.15 [Cloud HSM](#615-cloud-hsm)  
 7. [Non-Functional Design](#7-non-functional-design)
 8. [Security](#8-security)
 9. [License](#9-license)
