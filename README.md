@@ -5,8 +5,9 @@
 2. [Motivation](#2-motivation)
 3. [Permissions needed to run the tool](#3-permissions-needed-to-run-the-tool)
 4. [Installation](#4-installation)
-5. [Running The Tool](#5-running-the-tool)
-7. [Functional Design](#6-functional-design)  
+5. [Running the tool using Python directly](#5-running-the-tool-using-python-directly)
+6. [Running the tool as a Docker container](#6-running-the-tool-as-a-docker-container)
+7. [Functional Design](#7-functional-design)  
   7.1 [VPC Endpoints](#71-vpc-endpoints)  
   7.2 [Database Migration Service](#72-database-migration-service)  
   7.3 [DocumentDB Clusters](#73-documentdb)  
@@ -211,7 +212,7 @@ Optional arguments:
 
 ```
 
-## __5. Running the tool as a Docker container__
+## __6. Running the tool as a Docker container__
 
 Instead of installing Python and the dependencies, you can just use the Docker file and run the tool as a container. Here is how to do it.
 
@@ -329,8 +330,8 @@ The following scenarios are tagged as potential risk by this tool:
 
 ### 7.15 Cloud HSM
 The following scenarios are tagged as potential risk by this tool:
-1. Any cluster with a single hsm.
-2. Any cluster with multiple hsms all of which are in a single AZ.
+1. Any cluster with a single HSM.
+2. Any cluster with multiple HSMs all of which are in a single AZ.
 
 ## __8. Non-Functional Design__
 
