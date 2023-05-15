@@ -5,26 +5,27 @@
 2. [Motivation](#2-motivation)
 3. [Permissions needed to run the tool](#3-permissions-needed-to-run-the-tool)
 4. [Installation](#4-installation)
-5. [Running The Tool](#5-running-the-tool)
-6. [Functional Design](#6-functional-design)  
-  6.1 [VPC Endpoints](#61-vpc-endpoints)  
-  6.2 [Database Migration Service](#62-database-migration-service)  
-  6.3 [DocumentDB Clusters](#63-documentdb)  
-  6.4 [Storage Gateway](#64-storage-gateway)  
-  6.5 [Elastic File System](#65-elastic-file-system)  
-  6.6 [Opensearch](#66-opensearch)  
-  6.7 [FSX](#67-fsx)  
-  6.8 [Lambda](#68-lambda)  
-  6.9 [Elasticache](#69-elasticache)  
-  6.10 [Memory DB](#610-memory-db)  
-  6.11 [DynamoDB Accelerator](#611-dynamodb-accelerator)  
-  6.12 [Global Accelerator](#612-global-accelerator)  
-  6.13 [Relational Database Service](#613-relational-database-service)   
-  6.14 [Direct Connect](#614-direct-connect)  
-  6.15 [Cloud HSM](#615-cloud-hsm)  
-7. [Non-Functional Design](#7-non-functional-design)
-8. [Security](#8-security)
-9. [License](#9-license)
+5. [Running the tool using Python directly](#5-running-the-tool-using-python-directly)
+6. [Running the tool as a Docker container](#6-running-the-tool-as-a-docker-container)
+7. [Functional Design](#7-functional-design)  
+  7.1 [VPC Endpoints](#71-vpc-endpoints)  
+  7.2 [Database Migration Service](#72-database-migration-service)  
+  7.3 [DocumentDB Clusters](#73-documentdb)  
+  7.4 [Storage Gateway](#74-storage-gateway)  
+  7.5 [Elastic File System](#75-elastic-file-system)  
+  7.6 [Opensearch](#76-opensearch)  
+  7.7 [FSX](#77-fsx)  
+  7.8 [Lambda](#78-lambda)  
+  7.9 [Elasticache](#79-elasticache)  
+  7.10 [Memory DB](#710-memory-db)  
+  7.11 [DynamoDB Accelerator](#711-dynamodb-accelerator)  
+  7.12 [Global Accelerator](#712-global-accelerator)  
+  7.13 [Relational Database Service](#713-relational-database-service)   
+  7.14 [Direct Connect](#714-direct-connect)  
+  7.15 [Cloud HSM](#715-cloud-hsm)  
+8. [Non-Functional Design](#8-non-functional-design)
+9. [Security](#9-security)
+10. [License](#10-license)
 
 ## __1. Description__
 A tool to generate a list of potential resiliency risks across different services. Please note that these are only *potential* risks.
@@ -90,7 +91,7 @@ Sections with SIDs that have the suffix "ThatRequireWildcardResources" (used for
 In all other cases, the region and the resource name/id are wild cards as the tool needs to work across multiple regions and needs to look at all resources.
 
 ## __4. Installation__
-1. You will need Python 3.9+ for this tool. If you do not have Python installed, please install it from here:
+1. You will need Python 3.10+ for this tool. If you do not have Python installed, please install it from here:
 https://www.python.org/
 
 2. Clone the repo and install the dependencies with the following command:
@@ -100,7 +101,7 @@ pip install -r requirements.txt
 
 4. Once this is set up, you can run the tool as described in the next secion
 
-## __5. Running the tool__
+## __5. Running the tool using Python directly__
 Here is a simple example commmand on how you can run the script
 
 ```
@@ -211,27 +212,69 @@ Optional arguments:
 
 ```
 
-## __6. Functional Design__
+## __6. Running the tool as a Docker container__
 
-### 6.1 VPC Endpoints
+Instead of installing Python and the dependencies, you can just use the Docker file and run the tool as a container. Here is how to do it.
+
+1. Clone the repo and bulid the image by running the command `docker build . -t resiliency_analyser`
+
+2. If you are using an AWS profile use the following command (note how the credentials file is mapped into the container so that the container will have access to the credentials). Also note that the volume being mapped is the folder into which the output file to be written.If the folder(s) given in the path does not exist, the container will create it.
+
+```
+docker run \
+    -v $HOME/.aws/credentials:/root/.aws/credentials:ro \
+    -v $PWD/src/output/:/src/output/:rw \
+    org_visualiser \
+    --aws-profile madhav \
+    -o output/output.html
+```
+
+3. If you are using AWS credentials exported as env variables you can run it as below. You can remove AWS_SESSION_TOKEN if you are using long term credentials
+
+```
+docker run \
+    -v $PWD/src/output/:/src/output/:rw \
+    -e AWS_ACCESS_KEY_ID \
+    -e AWS_SECRET_ACCESS_KEY \
+    -e AWS_SESSION_TOKEN \
+    resiliency_analyser \
+    --regions us-east-1 \
+    --services lambda opensearch docdb rds \
+    --truncate-output
+```
+
+4. If you are running on an EC2 machine with an IAM role associated with the machine, then you can just run it without env variables or credential files as below.
+
+```
+docker run \
+    -v $PWD/src/output/:/src/output/:rw \
+    resiliency_analyser \
+    --regions us-east-1 \
+    --services lambda opensearch docdb rds \
+    --truncate-output
+```
+
+## __7. Functional Design__
+
+### 7.1 VPC Endpoints
 It is a best practice to make sure that VPC Interface Endpoints have ENIs in more than one subnet. If a VPC endpoint has an ENI in only a single subnet, this tool will flag that as a potential risk. You cannot create VPC Endpoints in 2 different subnets in the same AZ. So, for the purpose of VPC endpoints, having multiple subnets implies multiple AZs.
 
-### 6.2 Database Migration Service
+### 7.2 Database Migration Service
 If the DMS Replication Instance is not configured with at least 2 instances in different availability zones, then it will be tagged as a potential risk.
 
 Reference: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.html
 
-### 6.3 DocumentDB
+### 7.3 DocumentDB
 If the Document DB Cluster does not have a replica in a different AZ, it will be tagged as a potential risk.
 
 Reference: https://docs.aws.amazon.com/documentdb/latest/developerguide/failover.html
 
-### 6.4 Storage Gateway
+### 7.4 Storage Gateway
 Storage Gateway, when deployed on AWS, runs on a single Amazon EC2 instance. Therefore this is a single-point of availability failure for any applications expecting highly available access to application storage. Such storage gateways will be tagged as part of this check as a potential risk.
 
 Customers who are running Storage Gateway as a mechanism for providing file-based application storage that require high-availability should consider migrating their workloads to Amazon EFS, FSx, or other storage services that can provide higher availability architectures than Storage Gateway.
 
-### 6.5 Elastic File System
+### 7.5 Elastic File System
 This check tags both of the following scenarios as potential risks:
 1. Running an "EFS One Zone" deployment
 2. Running "EFS Standard" class deployment with a mount target in only one AZ.
@@ -240,19 +283,19 @@ Customers that have chosen to deploy a One Zone class of storage, should ensure 
 
 For customers identified that are running a Standard class EFS deployment, where multi-az replication is provided by the service, they have only a single mount target to access their file systems.  If an availability issue were to occur in that availability zone, the customer would lose access to the EFS deployment, even though other AZs/subnets were unaffected.
 
-### 6.6 Opensearch
+### 7.6 Opensearch
 Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be tagged as a potential risk by this tool.
 
-### 6.7 FSx
+### 7.7 FSx
 Any FSx Windows systems deployed as Single-AZ is tagged as a potential risk by this tool.
 
 Customers have the option to choose a Mulit-AZ or Single-AZ deployment when creating their file server deployment.
 
-### 6.8 Lambda
+### 7.8 Lambda
 Any Lambda function that is configured only to execute in a single Availability Zone are tagged as a potential risk.
 Reference: https://docs.aws.amazon.com/lambda/latest/dg/security-resilience.html
 
-### 6.9 Elasticache
+### 7.9 Elasticache
 The following clusters are tagged as potential Single AZ risks
 
 1. All Memcached clusters - Data is not replicated between memcached cluster nodes. Even if a customer has deployed nodes across multiple availability zones, the data present on any nodes that have a loss of availability (related to those hosts or their AZ) will result in the data in those cache nodes being unavailable as well.
@@ -266,31 +309,31 @@ The following clusters are tagged as potential Single AZ risks
   
   Reference: https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Replication.Redis-RedisCluster.html
 
-### 6.10 Memory DB
+### 7.10 Memory DB
 Any Memory DB cluster that has a single node in a shard  is tagged as a potential risk by this tool.
 
-### 6.11 DynamoDB Accelerator
+### 7.11 DynamoDB Accelerator
 Any single-node clusters, as well as DAX clusters with multiple nodes all deployed within the same Availability Zone would be tagged as being a potential risk by this tool.
 
-### 6.12 Global Accelerator
+### 7.12 Global Accelerator
 Any "Standard" Global accelerators that are configured to target endpoints consisting only of EC2 instances in a single Availability Zone are flagged by this tool. "Custom Routing" Global Accelerators are not covered.
 
-### 6.13 Relational Database Service
+### 7.13 Relational Database Service
 Any single AZ RDS Instance or Cluster is tagged as a potential risk by this tool.
 
-### 6.14 Direct Connect
+### 7.14 Direct Connect
 The following scenarios are tagged as potential risk by this tool:
 1. Any region with a single Direct Connect connection.
 2. Any region where there is more than one direct connection, but all of them use the same location.
 3. Any Virtual Gateway with only one VIF
 4. Any Virtual Gateway with more than one VIF but all of the VIFs on the same direct connect Connection.
 
-### 6.15 Cloud HSM
+### 7.15 Cloud HSM
 The following scenarios are tagged as potential risk by this tool:
-1. Any cluster with a single hsm.
-2. Any cluster with multiple hsms all of which are in a single AZ.
+1. Any cluster with a single HSM.
+2. Any cluster with multiple HSMs all of which are in a single AZ.
 
-## __7. Non-Functional Design__
+## __8. Non-Functional Design__
 
 There are two main classes:
 
@@ -306,10 +349,10 @@ In multi-threaded mode, care is taken to ensure that when writing the findings t
 
 When all the analysers are run, the output file is uploaded to an S3 bucket, if provided.
 
-## __8. Security__
+## __9. Security__
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
-## __9. License__
+## __10. License__
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
