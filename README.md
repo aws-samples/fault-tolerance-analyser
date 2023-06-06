@@ -218,15 +218,16 @@ Instead of installing Python and the dependencies, you can just use the Docker f
 
 1. Clone the repo and bulid the image by running the command `docker build . -t resiliency_analyser`
 
-2. If you are using an AWS profile use the following command (note how the credentials file is mapped into the container so that the container will have access to the credentials). Also note that the volume being mapped is the folder into which the output file to be written.If the folder(s) given in the path does not exist, the container will create it.
+2. If you are using an AWS profile use the following command (note how the credentials file is mapped into the container so that the container will have access to the credentials). Also note that the second volume being mapped is the folder into which the output file to be written.
 
 ```
 docker run \
     -v $HOME/.aws/credentials:/root/.aws/credentials:ro \
     -v $PWD/src/output/:/src/output/:rw \
-    org_visualiser \
-    --aws-profile madhav \
-    -o output/output.html
+    resiliency_analyser \
+    --regions us-east-1 \
+    --services lambda opensearch docdb rds \
+    --truncate-output
 ```
 
 3. If you are using AWS credentials exported as env variables you can run it as below. You can remove AWS_SESSION_TOKEN if you are using long term credentials
