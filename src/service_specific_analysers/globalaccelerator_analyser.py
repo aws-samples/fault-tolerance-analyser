@@ -39,7 +39,7 @@ class GlobalAcceleratorAnalyser(ServiceResiliencyAnalyser):
                 target_regions.add(endpoint_group["EndpointGroupRegion"])
                 if len(target_regions) > 1:
                     #If multiple regions are available then they are Multi-AZ. No need to proceed further
-                    finding_rec['potential_single_az_risk'] = False
+                    finding_rec['potential_single_az_issue'] = False
                     finding_rec['message'] = f"Global Accelerator: {accelerator['Name']} has target endpoints are in multiple regions"
                     fself.findings.append(finding_rec)
                 for endpoint in endpoint_group["EndpointDescriptions"]:
@@ -54,10 +54,10 @@ class GlobalAcceleratorAnalyser(ServiceResiliencyAnalyser):
         azs = self.get_azs_of_ec2_instances(ec2_instance_ids, next(iter(target_regions))) #We can use next(iter(target_regions) as we are sure there will be only one region. If there are more than one, we would not have come this far.
 
         if (len(azs) > 1):
-            finding_rec['potential_single_az_risk'] = False
+            finding_rec['potential_single_az_issue'] = False
             finding_rec['message'] = f"Global Accelerator: All target endpoints for the acceleator {accelerator['Name']} are EC2 instances and they are spread across more than one AZ {azs}"
         else:
-            finding_rec['potential_single_az_risk'] = True
+            finding_rec['potential_single_az_issue'] = True
             finding_rec['message'] = f"Global Accelerator: All target endpoints for the acceleator {accelerator['Name']} are EC2 instances and they are all in a single AZ {azs}"
 
         self.findings.append(finding_rec)

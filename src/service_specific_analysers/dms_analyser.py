@@ -31,10 +31,10 @@ class DMSAnalyser(ServiceResiliencyAnalyser):
             finding_rec = self.get_finding_rec_from_inst_response(repl_inst)
 
             if repl_inst["MultiAZ"]:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"DMS Replication Instance: {repl_inst['ReplicationInstanceIdentifier']} with ARN {repl_inst['ReplicationInstanceArn']} in an instance with multiple AZs"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"DMS Replication Instance: {repl_inst['ReplicationInstanceIdentifier']} with ARN {repl_inst['ReplicationInstanceArn']} is on an instance in a single AZ"
             self.findings.append(finding_rec)
 
@@ -45,10 +45,10 @@ class DMSAnalyser(ServiceResiliencyAnalyser):
 
             dms_instance_arn = repl_task["ReplicationInstanceArn"]
             if self.dms_instances[dms_instance_arn]["MultiAZ"]:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"DMS Replication Task: {repl_task['ReplicationTaskIdentifier']} with ARN {repl_task['ReplicationTaskArn']} in on the replication instance {self.dms_instances[dms_instance_arn]['ReplicationInstanceIdentifier']} which is configured with multiple AZs: {self.dms_instances[dms_instance_arn]['AZs']}"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"DMS Replication Task: {repl_task['ReplicationTaskIdentifier']} with ARN {repl_task['ReplicationTaskArn']} is on the replication instance  {self.dms_instances[dms_instance_arn]['ReplicationInstanceIdentifier']} which is configured only in a single AZ {self.dms_instances[dms_instance_arn]['AZs'][0]}."
             
             self.findings.append(finding_rec)

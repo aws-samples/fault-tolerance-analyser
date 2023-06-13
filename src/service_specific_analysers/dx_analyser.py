@@ -32,19 +32,19 @@ class DXAnalyser(ServiceResiliencyAnalyser):
             no_of_connections = no_of_connections + 1
             locations.add(conn["location"])
         
-        if no_of_connections == 0: #No DX connection. Hence no risk
-            finding_rec['potential_single_az_risk'] = False
+        if no_of_connections == 0: #No DX connection. Hence no issue
+            finding_rec['potential_single_az_issue'] = False
             finding_rec['message'] = f"Direct Connect: No connections in region {self.region}. Hence nothing to check"
         elif no_of_connections == 1:
-            finding_rec['potential_single_az_risk'] = True
+            finding_rec['potential_single_az_issue'] = True
             finding_rec['message'] = f"Direct Connect: There is only one DX connection in region {self.region}"
         else: #no_of_connections > 0 #Connection Redundancy is met.
             logging.info(f"Direct Connect: More than one DX connection found in region {self.region}. Now on to checking locations")
             if len(locations) == 1: #All connections use the same location
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"Direct Connect: There is only one location {next(iter(locations))} used by all the DX connections in region {self.region}"
             else: #Connection Redundancy and Location Redundancy is also met
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"Direct Connect:  There are more than 1 DX connetions, using more than one location in region {self.region}"
 
         self.findings.append(finding_rec)
@@ -67,13 +67,13 @@ class DXAnalyser(ServiceResiliencyAnalyser):
         for vgw_id in vgws:
             finding_rec = self.get_vgw_output(vgw_id)
             if len(vgws[vgw_id]['vifs']) < 2:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"Direct Connect: There is only one VIF {vgws[vgw_id]['vifs']} for the virtual gateway {vgw_id}."
             elif len(vgws[vgw_id]['connections']) < 2:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"Direct Connect: Though there are more than 1 VIFs for the virtual gateway {vgw_id}, all the VIFs are on the same DX Connection {vgws[vgw_id]['connections']}."
             else:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"Direct Connect: There are more than 1 VIFs for the virtual gateway {vgw_id}, and the VIFs are on more than one DX connection."
 
 #Contains the logic to extract relevant fields from the API response to the output csv file.

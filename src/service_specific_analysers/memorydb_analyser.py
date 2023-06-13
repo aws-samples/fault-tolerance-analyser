@@ -20,16 +20,16 @@ class MemoryDBAnalyser(ServiceResiliencyAnalyser):
 
         for cluster in utils.invoke_aws_api_full_list(self.memorydb.describe_clusters, "Clusters", ShowShardDetails = True):
             finding_rec = self.get_finding_rec_from_response(cluster)
-            risk_found = False
+            issue_found = False
             for shard in cluster["Shards"]:
                 if len(shard["Nodes"]) == 1:
-                    finding_rec['potential_single_az_risk'] = True
+                    finding_rec['potential_single_az_issue'] = True
                     finding_rec['message'] = f"Memory DB Cluster: Shard {shard['Name']} in cluster {cluster['Name']} does not have any replicas"
-                    risk_found = True
+                    issue_found = True
                     break            
 
-            if not risk_found:
-                finding_rec['potential_single_az_risk'] = False
+            if not issue_found:
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"Memory DB Cluster: All shards in cluster {cluster['Name']} have replicas"
             self.findings.append(finding_rec)
 

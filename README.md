@@ -28,9 +28,9 @@
 10. [License](#10-license)
 
 ## __1. Description__
-A tool to generate a list of potential resiliency risks across different services. Please note that these are only *potential* risks.
+A tool to generate a list of potential resiliency issues across different services. Please note that these are only *potential* issues.
 
-There are a number of circumstances in which this may not pose a risk including, development workloads, cost, or not viewing this workload as a business risk in the event of an AZ impacting event.
+There are a number of circumstances in which the finding may not pose a problem including, development workloads, cost, or not viewing this workload as business critical in the event of an AZ impacting event.
 
 The output is a csv file created locally and also uploaded to an S3 bucket (if provided).
 
@@ -126,7 +126,7 @@ Resiliency_Findings_2022_11_21_17_09_19_run_report.csv
 The output will look like this. This shows all the findings.
 
 ```
-service,region,account_id,account_name,payer_account_id,payer_account_name,resource_arn,resource_name,resource_id,potential_single_az_risk,engine,message,timestamp
+service,region,account_id,account_name,payer_account_id,payer_account_name,resource_arn,resource_name,resource_id,potential_single_az_issue,engine,message,timestamp
 lambda,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:lambda:us-east-1:123456789101:function:test1z,test1z,,True,,VPC Enabled lambda in only one subnet,2022_11_29_16_20_43_+0000
 lambda,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:lambda:us-east-1:123456789101:function:test2az,test2az,,False,,VPC Enabled lambda in more than one subnet,2022_11_29_16_20_43_+0000
 docdb,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:rds:us-east-1:123456789101:cluster:docdb-2022-07-08-13-05-30,docdb-2022-07-08-13-05-30,cluster-JKL,True,,Single AZ Doc DB Cluster,2022_11_29_16_20_43_+0000
@@ -167,7 +167,7 @@ usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,
                                       [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...] -r REGIONS [REGIONS ...] [-h]
                                       [-m MAX_CONCURRENT_THREADS] [-o OUTPUT_FOLDER_NAME] [-b BUCKET_NAME] [--event-bus-arn EVENT_BUS_ARN] [--aws-profile AWS_PROFILE_NAME]
                                       [--aws-assume-role AWS_ASSUME_ROLE_NAME] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--single-threaded] [--truncate-output] [--filename-with-accountid]
-                                      [--report-only-risks]
+                                      [--report-only-issues]
 
 Generate resiliency findings for different services
 
@@ -206,7 +206,7 @@ Optional arguments:
   --filename-with-accountid
                         Use this flag to include account id in the output file name. By default this is False, meaning, account id will not be in the file name. The default mode is useful if you are
                         running the script for more than one account, and want all the accounts' findings to be in the same output file.
-  --report-only-risks   Use this flag to report only findings that are potential risks. Resources that have no identified risks will not appear in the final csv file. Default is to report all
+  --report-only-issues   Use this flag to report only findings that are potential issues. Resources that have no identified issues will not appear in the final csv file. Default is to report all
                         findings.
 
 
@@ -258,25 +258,25 @@ docker run \
 ## __7. Functional Design__
 
 ### 7.1 VPC Endpoints
-It is a best practice to make sure that VPC Interface Endpoints have ENIs in more than one subnet. If a VPC endpoint has an ENI in only a single subnet, this tool will flag that as a potential risk. You cannot create VPC Endpoints in 2 different subnets in the same AZ. So, for the purpose of VPC endpoints, having multiple subnets implies multiple AZs.
+It is a best practice to make sure that VPC Interface Endpoints have ENIs in more than one subnet. If a VPC endpoint has an ENI in only a single subnet, this tool will flag that as a potential issue. You cannot create VPC Endpoints in 2 different subnets in the same AZ. So, for the purpose of VPC endpoints, having multiple subnets implies multiple AZs.
 
 ### 7.2 Database Migration Service
-If the DMS Replication Instance is not configured with at least 2 instances in different availability zones, then it will be tagged as a potential risk.
+If the DMS Replication Instance is not configured with at least 2 instances in different availability zones, then it will be tagged as a potential issue.
 
 Reference: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.html
 
 ### 7.3 DocumentDB
-If the Document DB Cluster does not have a replica in a different AZ, it will be tagged as a potential risk.
+If the Document DB Cluster does not have a replica in a different AZ, it will be tagged as a potential issue.
 
 Reference: https://docs.aws.amazon.com/documentdb/latest/developerguide/failover.html
 
 ### 7.4 Storage Gateway
-Storage Gateway, when deployed on AWS, runs on a single Amazon EC2 instance. Therefore this is a single-point of availability failure for any applications expecting highly available access to application storage. Such storage gateways will be tagged as part of this check as a potential risk.
+Storage Gateway, when deployed on AWS, runs on a single Amazon EC2 instance. Therefore this is a single-point of availability failure for any applications expecting highly available access to application storage. Such storage gateways will be tagged as part of this check as a potential issue.
 
 Customers who are running Storage Gateway as a mechanism for providing file-based application storage that require high-availability should consider migrating their workloads to Amazon EFS, FSx, or other storage services that can provide higher availability architectures than Storage Gateway.
 
 ### 7.5 Elastic File System
-This check tags both of the following scenarios as potential risks:
+This check tags both of the following scenarios as potential issues:
 1. Running an "EFS One Zone" deployment
 2. Running "EFS Standard" class deployment with a mount target in only one AZ.
 
@@ -285,23 +285,23 @@ Customers that have chosen to deploy a One Zone class of storage, should ensure 
 For customers identified that are running a Standard class EFS deployment, where multi-az replication is provided by the service, they have only a single mount target to access their file systems.  If an availability issue were to occur in that availability zone, the customer would lose access to the EFS deployment, even though other AZs/subnets were unaffected.
 
 ### 7.6 Opensearch
-Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be tagged as a potential risk by this tool.
+Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be tagged as a potential issue by this tool.
 
 ### 7.7 FSx
-Any FSx Windows systems deployed as Single-AZ is tagged as a potential risk by this tool.
+Any FSx Windows systems deployed as Single-AZ is tagged as a potential issue by this tool.
 
 Customers have the option to choose a Mulit-AZ or Single-AZ deployment when creating their file server deployment.
 
 ### 7.8 Lambda
-Any Lambda function that is configured only to execute in a single Availability Zone are tagged as a potential risk.
+Any Lambda function that is configured only to execute in a single Availability Zone are tagged as a potential issue.
 Reference: https://docs.aws.amazon.com/lambda/latest/dg/security-resilience.html
 
 ### 7.9 Elasticache
-The following clusters are tagged as potential Single AZ risks
+The following clusters are tagged as potential Single AZ issues
 
 1. All Memcached clusters - Data is not replicated between memcached cluster nodes. Even if a customer has deployed nodes across multiple availability zones, the data present on any nodes that have a loss of availability (related to those hosts or their AZ) will result in the data in those cache nodes being unavailable as well.
 
-2. Redis clusters - The following clusters are taggeed as a risk  
+2. Redis clusters - The following clusters are taggeed as a issue  
   2.1 Any single node clusters  
   2.2 Any "Cluster Mode" disabled clusters.  
   2.3 Any "Cluster Mode" enabled clusters with at least one Node group having all the nodes in the same AZ.  
@@ -311,26 +311,26 @@ The following clusters are tagged as potential Single AZ risks
   Reference: https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Replication.Redis-RedisCluster.html
 
 ### 7.10 Memory DB
-Any Memory DB cluster that has a single node in a shard  is tagged as a potential risk by this tool.
+Any Memory DB cluster that has a single node in a shard  is tagged as a potential issue by this tool.
 
 ### 7.11 DynamoDB Accelerator
-Any single-node clusters, as well as DAX clusters with multiple nodes all deployed within the same Availability Zone would be tagged as being a potential risk by this tool.
+Any single-node clusters, as well as DAX clusters with multiple nodes all deployed within the same Availability Zone would be tagged as being a potential issue by this tool.
 
 ### 7.12 Global Accelerator
 Any "Standard" Global accelerators that are configured to target endpoints consisting only of EC2 instances in a single Availability Zone are flagged by this tool. "Custom Routing" Global Accelerators are not covered.
 
 ### 7.13 Relational Database Service
-Any single AZ RDS Instance or Cluster is tagged as a potential risk by this tool.
+Any single AZ RDS Instance or Cluster is tagged as a potential issue by this tool.
 
 ### 7.14 Direct Connect
-The following scenarios are tagged as potential risk by this tool:
+The following scenarios are tagged as potential issue by this tool:
 1. Any region with a single Direct Connect connection.
 2. Any region where there is more than one direct connection, but all of them use the same location.
 3. Any Virtual Gateway with only one VIF
 4. Any Virtual Gateway with more than one VIF but all of the VIFs on the same direct connect Connection.
 
 ### 7.15 Cloud HSM
-The following scenarios are tagged as potential risk by this tool:
+The following scenarios are tagged as potential issue by this tool:
 1. Any cluster with a single HSM.
 2. Any cluster with multiple HSMs all of which are in a single AZ.
 
@@ -339,7 +339,7 @@ The following scenarios are tagged as potential risk by this tool:
 There are two main classes:
 
 ### ServiceResiliencyAnalyser
-The ServiceResiliencyAnalyser is an abstract class from which all the service specific analysers are inherited. The service specific analysers contain the logic to identify potential risks for a given region.
+The ServiceResiliencyAnalyser is an abstract class from which all the service specific analysers are inherited. The service specific analysers contain the logic to identify potential issues for a given region.
 
 ### AccountResiliencyAnalyser
 An object of this class is initiated as part of the "main" functionality. This loops through all the services and regions and instantiates the service specific analyser for each region+service combination and triggers the method to gather the findings in that service specific analyser. Once the findings are received, it writes it to a file.

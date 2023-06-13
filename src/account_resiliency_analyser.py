@@ -75,7 +75,7 @@ class AccountResiliencyAnalyser():
                         'resource_arn',
                         'resource_name',
                         'resource_id',
-                        'potential_single_az_risk',
+                        'potential_single_az_issue',
                         'engine', #Used for Elasticache, Memory DB and RDS
                         'message',
                         'timestamp'

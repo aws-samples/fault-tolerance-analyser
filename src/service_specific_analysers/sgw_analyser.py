@@ -19,10 +19,10 @@ class SGWAnalyser(ServiceResiliencyAnalyser):
         for gateway in utils.invoke_aws_api_full_list(sgw.list_gateways, "Gateways"):
             finding_rec = self.get_finding_rec_from_response(gateway)
             if (("Ec2InstanceRegion" in gateway.keys()) and (len(gateway["Ec2InstanceRegion"]))):
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"Storge Gateway: Gateway {gateway['GatewayName']} with ARN {gateway['GatewayARN']} in hosted on AWS. Please ensure this gateway is not used for critical workloads"
             else:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"Storge Gateway: Gateway {gateway['GatewayName']} is not hosted on AWS"
 
             self.findings.append(finding_rec)

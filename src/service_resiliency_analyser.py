@@ -86,7 +86,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
     def write_findings(self):
         self.write_findings_to_file()
-        #If an event bus is provided publish any risks to event bridge
+        #If an event bus is provided publish any issues to event bridge
         if (utils.config_info.event_bus_arn):
             self.publish_findings_to_event_bridge()
 
@@ -95,7 +95,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
         #Log findings
         for finding_rec in self.findings:
-            if finding_rec['potential_single_az_risk']:
+            if finding_rec['potential_single_az_issue']:
                 logging.error(finding_rec['message'])
             else:
                 logging.info(finding_rec['message'])
@@ -106,11 +106,11 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
             if self.account_analyser.lock.acquire():
                 with open(self.account_analyser.output_file_full_path, 'a', newline='') as output_file:
                     dict_writer = csv.DictWriter(output_file, self.account_analyser.keys)
-                    if utils.config_info.report_only_risks: #If the "report-only-risks" flag is set, go through each finding and write out only those that are identified as a potential risk
+                    if utils.config_info.report_only_issues: #If the "report-only-issues" flag is set, go through each finding and write out only those that are identified as a potential issue
                         for finding_rec in self.findings:
-                            if finding_rec['potential_single_az_risk']:
+                            if finding_rec['potential_single_az_issue']:
                                 dict_writer.writerow(finding_rec)
-                    else: #If the "report-only-risks" flag is not set, then Write all findings
+                    else: #If the "report-only-issues" flag is not set, then Write all findings
                         dict_writer.writerows(self.findings)
                 self.account_analyser.lock.release()
 
@@ -127,12 +127,12 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         total_entries_count = 0
 
         for finding_rec in self.findings:
-            if (not utils.config_info.report_only_risks) or (utils.config_info.report_only_risks and finding_rec['potential_single_az_risk']):
+            if (not utils.config_info.report_only_issues) or (utils.config_info.report_only_issues and finding_rec['potential_single_az_issue']):
                 entries.append(
                     {
                         'Time': datetime.datetime.now().astimezone(),
                         'Source': 'ResiliencyAnalyser',
-                        'DetailType': 'ResiliencyRisk',
+                        'DetailType': 'Resiliencyissue',
                         'Detail': json.dumps(finding_rec),
                         'EventBusName' : utils.config_info.event_bus_arn
                     }

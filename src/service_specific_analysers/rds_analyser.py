@@ -28,10 +28,10 @@ class RDSAnalyser(ServiceResiliencyAnalyser):
             finding_rec = self.get_finding_rec_from_response_instance(db_instance)
 
             if db_instance["MultiAZ"]:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"RDS Instance: {db_instance['DBInstanceIdentifier']} has MultiAZ enabled"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"RDS Instance: {db_instance['DBInstanceIdentifier']} has MultiAZ disabled"
             self.findings.append(finding_rec)
 
@@ -43,10 +43,10 @@ class RDSAnalyser(ServiceResiliencyAnalyser):
             finding_rec = self.get_finding_rec_from_response_cluster(db_cluster)
 
             if db_cluster["MultiAZ"]:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"RDS Cluster: {db_cluster['DBClusterIdentifier']} has MultiAZ enabled"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"RDS Cluster {db_cluster['DBClusterIdentifier']} has MultiAZ disabled"
             self.findings.append(finding_rec)
 

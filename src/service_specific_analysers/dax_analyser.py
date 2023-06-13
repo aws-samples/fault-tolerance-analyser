@@ -20,10 +20,10 @@ class DAXAnalyser(ServiceResiliencyAnalyser):
             azs = {node['AvailabilityZone'] for node in cluster["Nodes"]}
 
             if len(azs) > 1:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"Nodes in DAX Cluster {cluster['ClusterName']} are spread across more than 1 AZ {azs}"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"All nodes in the DAX cluster  {cluster['ClusterName']} are in a single AZ {azs}"
             self.findings.append(finding_rec)
 

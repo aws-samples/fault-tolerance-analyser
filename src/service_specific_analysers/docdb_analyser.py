@@ -19,10 +19,10 @@ class DocDBAnalyser(ServiceResiliencyAnalyser):
             if db_cluster["Engine"] == "docdb": #Neptune clusters could also be listed. Hence we need to look only for docdb
                 finding_rec = self.get_finding_rec_from_response(db_cluster)
                 if db_cluster["MultiAZ"]:
-                    finding_rec['potential_single_az_risk'] = False
+                    finding_rec['potential_single_az_issue'] = False
                     finding_rec['message'] = "DocDB Cluster: {db_cluster['DBClusterIdentifier']} is in multiple AZs"
                 else:
-                    finding_rec['potential_single_az_risk'] = True
+                    finding_rec['potential_single_az_issue'] = True
                     finding_rec['message'] = f"DocDB Cluster: {db_cluster['DBClusterIdentifier']} is in a single AZ"
                 self.findings.append(finding_rec)
 

@@ -21,10 +21,10 @@ class VPCEAnalyser(ServiceResiliencyAnalyser):
             finding_rec = self.get_finding_rec_from_response(vpce)
 
             if len(subnet_ids) > 1:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"VPCE: {vpce['VpcEndpointId']} has multiple subnets: {subnet_ids}"
             else:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"VPCE: {vpce['VpcEndpointId']} has a single subnet: {subnet_ids}"
 
             self.findings.append(finding_rec)

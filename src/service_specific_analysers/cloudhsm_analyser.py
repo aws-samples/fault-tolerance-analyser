@@ -20,20 +20,20 @@ class CloudHSMAnalyser(ServiceResiliencyAnalyser):
             finding_rec = self.get_finding_rec_from_response(cluster)
 
             if len(cluster["Hsms"]) == 0:
-                finding_rec['potential_single_az_risk'] = False
+                finding_rec['potential_single_az_issue'] = False
                 finding_rec['message'] = f"CloudHSM: Cloud HSM cluster {cluster['ClusterId']} has only no hsms."
             elif len(cluster["Hsms"]) == 1:
-                finding_rec['potential_single_az_risk'] = True
+                finding_rec['potential_single_az_issue'] = True
                 finding_rec['message'] = f"CloudHSM: Cloud HSM cluster {cluster['ClusterId']} has only 1 hsm in a single AZ {cluster['Hsms'][0]['AvailabilityZone']}."
             elif len(cluster["Hsms"]) > 1:
                 azs = set()
                 for hsm in cluster['Hsms']:
                     azs.add(hsm['AvailabilityZone'])
                 if len(azs) == 1:
-                    finding_rec['potential_single_az_risk'] = True
+                    finding_rec['potential_single_az_issue'] = True
                     finding_rec['message'] = f"CloudHSM: Cloud HSM cluster {cluster['ClusterId']} has {len(cluster['Hsms'])} hsms but they are all in the AZ {azs.pop()}"
                 else: #len(azs) > 1
-                    finding_rec['potential_single_az_risk'] = False
+                    finding_rec['potential_single_az_issue'] = False
                     finding_rec['message'] = f"CloudHSM: Cloud HSM cluster {cluster['ClusterId']} has {len(cluster['Hsms'])} hsms and they are spread across multiple AZs: {list(azs)}"
             self.findings.append(finding_rec)
 
