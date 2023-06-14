@@ -4,9 +4,9 @@
 import boto3
 import logging
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class ElasticacheAnalyser(ServiceResiliencyAnalyser):
+class ElasticacheAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'elasticache')
@@ -22,7 +22,7 @@ class ElasticacheAnalyser(ServiceResiliencyAnalyser):
         #Get memcached and single node Redis clusters        
         for cluster in utils.invoke_aws_api_full_list(self.elasticache.describe_cache_clusters, "CacheClusters", ShowCacheClustersNotInReplicationGroups = True):
             finding_rec = self.get_output_from_memcache_single_node_redis_response(cluster)
-            finding_rec['potential_single_az_issue'] = True
+            finding_rec['potential_issue'] = True
             if cluster['Engine'] == 'redis': #Single node redis cluster
                 finding_rec['message'] = "Elasticache-Redis cluster: {cluster['CacheClusterId']} is a single Node Elasticache-Redis cluster"
             else: #Memcached cluster
@@ -44,11 +44,11 @@ class ElasticacheAnalyser(ServiceResiliencyAnalyser):
         for repl_group in utils.invoke_aws_api_full_list(self.elasticache.describe_replication_groups, "ReplicationGroups"):
             finding_rec = self.get_output_from_redis_replication_group_response(repl_group)
             if len(repl_group["NodeGroups"]) == 0 : #Cluster Mode disabled. And no node groups or shards. So the data is not replicated across nodes and so this is not single AZ failure resilient
-                finding_rec['potential_single_az_issue'] = True
+                finding_rec['potential_issue'] = True
                 finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode disabled and no node groups configured"
             elif len(repl_group["NodeGroups"]) == 1 : #Cluster Mode disabled. One node group/shard
                 if repl_group["AutomaticFailover"] == "disabled":
-                    finding_rec['potential_single_az_issue'] = True
+                    finding_rec['potential_issue'] = True
                     finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode disabled, 1 Node group configured but Auto Failover is disabled"
                 elif repl_group["MultiAZ"] == "disabled": #Auto failover enabled, but multi AZ disabled
                     node_group = repl_group["NodeGroups"][0]
@@ -56,13 +56,13 @@ class ElasticacheAnalyser(ServiceResiliencyAnalyser):
                     for node in node_group["NodeGroupMembers"]:
                         azs.add(node["PreferredAvailabilityZone"])
                     if len(azs) == 1: #All nodes belong to the same AZ
-                        finding_rec['potential_single_az_issue'] = True
+                        finding_rec['potential_issue'] = True
                         finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode disabled and Auto Failover is enabled, but all nodes are in the same AZ {azs}"
                     else:
-                        finding_rec['potential_single_az_issue'] = False
+                        finding_rec['potential_issue'] = False
                         finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode disabled, and Auto Failover is enabled. but the nodes are not in multiple AZs {azs}"
                 else: # Auto failover enabled and multi AZ enabled. So this is ok.
-                    finding_rec['potential_single_az_issue'] = False
+                    finding_rec['potential_issue'] = False
                     finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode disabled, but Auto Failover and Multi AZ enabled"
             # At this point len(repl_group["NodeGroups"]) > 1 which implies cluster mode is enabled.
             # This means that Automatic failover is enabled by force.
@@ -74,7 +74,7 @@ class ElasticacheAnalyser(ServiceResiliencyAnalyser):
                 issue_found = False
                 for node_group in node_groups:
                     if len(node_group["NodeGroupMembers"]) == 1:
-                        finding_rec['potential_single_az_issue'] = True
+                        finding_rec['potential_issue'] = True
                         finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode enabled, but no replicas in shard {node_group['NodeGroupId']}"
                         issue_found = True
                         break
@@ -83,15 +83,15 @@ class ElasticacheAnalyser(ServiceResiliencyAnalyser):
                         for node in node_group["NodeGroupMembers"]:
                             azs.add(node["PreferredAvailabilityZone"])
                         if len(azs) == 1: #All nodes belong to the same AZ
-                            finding_rec['potential_single_az_issue'] = True
+                            finding_rec['potential_issue'] = True
                             finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode enabled, but all nodes in shard {node_group['NodeGroupId']} are in the same AZ {azs}"
                             issue_found = True
                             break
                 if not issue_found: #All Node groups have been ok
-                    finding_rec['potential_single_az_issue'] = False
+                    finding_rec['potential_issue'] = False
                     finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode enabled, all nodegroups have replicas and none of those node groups have all the nodes in the same AZ."
             else:
-                finding_rec['potential_single_az_issue'] = False
+                finding_rec['potential_issue'] = False
                 finding_rec['message'] = f"Elasticache-Redis Replication Group: {repl_group['ReplicationGroupId']}: Cluster Mode enabled, and Multi AZ is enabled."
             self.findings.append(finding_rec)
 

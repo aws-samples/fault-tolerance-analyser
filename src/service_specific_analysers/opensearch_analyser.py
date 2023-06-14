@@ -5,9 +5,9 @@ import boto3
 import logging
 import utils
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class OpensearchAnalyser(ServiceResiliencyAnalyser):
+class OpensearchAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'opensearch')
@@ -37,10 +37,10 @@ class OpensearchAnalyser(ServiceResiliencyAnalyser):
         for domain in utils.invoke_aws_api_full_list(opensearch.describe_domains, "DomainStatusList", DomainNames = domain_names):
             finding_rec = self.get_finding_rec_from_response(domain)
             if len(domain["VPCOptions"]["AvailabilityZones"]) > 1:
-                finding_rec['potential_single_az_issue'] = False
+                finding_rec['potential_issue'] = False
                 finding_rec['message'] = f"Opensearch domain: Domain {domain['DomainName']} with ARN {domain['ARN'] } is multi AZ enabled."
             else:
-                finding_rec['potential_single_az_issue'] = True
+                finding_rec['potential_issue'] = True
                 finding_rec['message'] = f"Opensearch domain: Domain {domain['DomainName']} with ARN {domain['ARN'] } is only in a single AZ."
             self.findings.append(finding_rec)
 

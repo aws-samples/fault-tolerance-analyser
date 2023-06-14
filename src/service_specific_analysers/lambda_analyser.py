@@ -4,9 +4,9 @@
 import boto3
 import logging
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class LambdaAnalyser(ServiceResiliencyAnalyser):
+class LambdaAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'lambda')
@@ -23,10 +23,10 @@ class LambdaAnalyser(ServiceResiliencyAnalyser):
             if lambda_func["VpcConfig"]["VpcId"]: #If it is populated only then is it VPC Enabld. If not, this check can be ignored.
                 finding_rec = self.get_finding_rec_from_response(lambda_func)
                 if len(lambda_func["VpcConfig"]["SubnetIds"]) == 1:
-                    finding_rec['potential_single_az_issue'] = True
+                    finding_rec['potential_issue'] = True
                     finding_rec['message'] = f"Lambda: VPC Enabled Lambda function {lambda_func['FunctionName']} is configured to run in only one subnet."
                 else:
-                    finding_rec['potential_single_az_issue'] = False
+                    finding_rec['potential_issue'] = False
                     finding_rec['message'] = f"Lambda: VPC Enabled Lambda Function {lambda_func['FunctionName']} is configured to run in more than one subnet"
                 self.findings.append(finding_rec)
 

@@ -30,7 +30,7 @@ from service_specific_analysers.cloudhsm_analyser import CloudHSMAnalyser
 
 from collections import namedtuple
 
-class AccountResiliencyAnalyser():
+class AccountAnalyser():
 
     analyser_classes = {}
     analyser_classes['vpce'] = VPCEAnalyser
@@ -75,7 +75,7 @@ class AccountResiliencyAnalyser():
                         'resource_arn',
                         'resource_name',
                         'resource_id',
-                        'potential_single_az_issue',
+                        'potential_issue',
                         'engine', #Used for Elasticache, Memory DB and RDS
                         'message',
                         'timestamp'
@@ -88,11 +88,11 @@ class AccountResiliencyAnalyser():
 
         #Build output file names, either with or without the account id based on the config information
         if utils.config_info.filename_with_accountid:
-            self.output_file_name = f"Resiliency_Findings_{self.account_id}_{self.account_name}_{tm}.csv"
-            self.run_report_file_name = f"Resiliency_Findings_{self.account_id}_{self.account_name}_{tm}_run_report.csv"
+            self.output_file_name = f"Fault_Tolerance_Findings_{self.account_id}_{self.account_name}_{tm}.csv"
+            self.run_report_file_name = f"Fault_Tolerance_Findings_{self.account_id}_{self.account_name}_{tm}_run_report.csv"
         else:
-            self.output_file_name = f"Resiliency_Findings_{tm}.csv"
-            self.run_report_file_name = f"Resiliency_Findings_{tm}_run_report.csv"
+            self.output_file_name = f"Fault_Tolerance_Findings_{tm}.csv"
+            self.run_report_file_name = f"Fault_Tolerance_Findings_{tm}_run_report.csv"
 
         self.output_file_full_path = f"{utils.config_info.output_folder_name}{self.output_file_name}"
         self.run_report_file_full_path = f"{utils.config_info.output_folder_name}{self.run_report_file_name}"
@@ -201,5 +201,5 @@ class AccountResiliencyAnalyser():
 
 if __name__ == "__main__":
     #Create an instance of the Account level analyser and trigger the get_findings function.
-    ara = AccountResiliencyAnalyser()
+    ara = AccountAnalyser()
     ara.get_findings()

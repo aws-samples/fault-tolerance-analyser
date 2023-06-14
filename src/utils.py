@@ -96,7 +96,7 @@ def get_aws_session(session_name = None):
         account_id = sts_client.get_caller_identity()["Account"]
 
         if not session_name:
-            session_name = "AssumeRoleForResiliencyAnalyser"
+            session_name = "AssumeRoleForFaultToleranceAnalyser"
 
         assumed_role_object=sts_client.assume_role(
             RoleArn=f"arn:aws:iam::{account_id}:role/{config_info.aws_assume_role_name}",
@@ -207,15 +207,15 @@ def bucket_name_validator(bucket_name):
 def get_config_info():
 
     #Define the arguments
-    parser = argparse.ArgumentParser(description='Generate resiliency findings for different services', add_help=False)
+    parser = argparse.ArgumentParser(description='Generate fault tolerance findings for different services', add_help=False)
 
     required_params_group = parser.add_argument_group('Required arguments')
     required_params_group.add_argument('-s', '--services', nargs='+', choices = all_services + ['ALL'],
-                        help=f"Indicate which service(s) you want to fetch resiliency findings for. Options are {all_services}. Use 'ALL' for all services",
+                        help=f"Indicate which service(s) you want to fetch fault tolerance findings for. Options are {all_services}. Use 'ALL' for all services",
                         required = True
                         )
     required_params_group.add_argument('-r', '--regions', nargs='+',
-                        help='Indicate which region(s) you want to fetch resiliency findings for. Use "ALL" for all approved regions',
+                        help='Indicate which region(s) you want to fetch fault tolerance findings for. Use "ALL" for all approved regions',
                         required = True
                         )
 
@@ -234,9 +234,9 @@ def get_config_info():
                             If it does not exist, it will be created. If a bucket name is also provided, then the folder will be looked for under the bucket, and if not present, will be created
                             If a bucket name is not provided, then this folder will be expected under the directory in which the script is ran. In case a bucket is provided, the files will be generated in this folder first and then pushed to the bucket
                             Please ensure there is a forward slash '/' at the end of the folder path
-                            Output file name will be of the format Resiliency_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_123456789101_TestAccount_2022_11_01.csv
+                            Output file name will be of the format Fault_Tolerance_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_123456789101_TestAccount_2022_11_01.csv
                             If you do not use the --filename-with-accountid option, the output file name will be of the format:
-                            Resiliency_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_2022_11_01.csv''')
+                            Fault_Tolerance_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_2022_11_01.csv''')
     optional_params_group.add_argument('-b', '--bucket', dest='bucket_name',
                         default = None,
                         type=bucket_name_validator,

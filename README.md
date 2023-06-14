@@ -1,4 +1,4 @@
-# Resiliency Analyser
+# Fault Tolerance Analyser
 
 ## __Table of Contents__
 1. [Description](#1-description)
@@ -28,14 +28,14 @@
 10. [License](#10-license)
 
 ## __1. Description__
-A tool to generate a list of potential resiliency issues across different services. Please note that these are only *potential* issues.
+A tool to generate a list of potential fault tolerance issues across different services. Please note that these are only *potential* issues.
 
 There are a number of circumstances in which the finding may not pose a problem including, development workloads, cost, or not viewing this workload as business critical in the event of an AZ impacting event.
 
 The output is a csv file created locally and also uploaded to an S3 bucket (if provided).
 
 ## __2. Motivation__
-The intent is to help customers check their workloads for any obvious situations where there is a lack of Resiliency/high availability.
+The intent is to help customers check their workloads for any components with potential fault tolerance issues.
 
 ## __3. Permissions needed to run the tool__
 
@@ -57,7 +57,7 @@ EC2.describe_regions
 Organizations.describe_account
 S3.put_object
 
-#APIs invoked for service specific resiliency analysis
+#APIs invoked for service specific fault tolerance analysis
 Lambda.list_functions
 StorageGateway.list_gateways
 OpenSearchService.list_domain_names
@@ -106,7 +106,7 @@ Here is a simple example commmand on how you can run the script
 
 ```
 cd src
-python3 account_resiliency_analyser.py \
+python3 account_analyser.py \
     --regions us-east-1 \
     --services lambda opensearch docdb rds \
     --truncate-output
@@ -119,14 +119,14 @@ Once the script finishes, check the subfolder output/ and you will see 2 files l
 ```
 ls output/
 
-Resiliency_Findings_2022_11_21_17_09_19.csv
-Resiliency_Findings_2022_11_21_17_09_19_run_report.csv
+Fault_Tolerance_Findings_2022_11_21_17_09_19.csv
+Fault_Tolerance_Findings_2022_11_21_17_09_19_run_report.csv
 ```
 
 The output will look like this. This shows all the findings.
 
 ```
-service,region,account_id,account_name,payer_account_id,payer_account_name,resource_arn,resource_name,resource_id,potential_single_az_issue,engine,message,timestamp
+service,region,account_id,account_name,payer_account_id,payer_account_name,resource_arn,resource_name,resource_id,potential_issue,engine,message,timestamp
 lambda,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:lambda:us-east-1:123456789101:function:test1z,test1z,,True,,VPC Enabled lambda in only one subnet,2022_11_29_16_20_43_+0000
 lambda,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:lambda:us-east-1:123456789101:function:test2az,test2az,,False,,VPC Enabled lambda in more than one subnet,2022_11_29_16_20_43_+0000
 docdb,us-east-1,123456789101,TestAccount,999456789101,TestParentAccount,arn:aws:rds:us-east-1:123456789101:cluster:docdb-2022-07-08-13-05-30,docdb-2022-07-08-13-05-30,cluster-JKL,True,,Single AZ Doc DB Cluster,2022_11_29_16_20_43_+0000
@@ -162,21 +162,21 @@ The same files will also be pushed to an S3 bucket if you provide a bucket name 
 Use the option --help to look at all the options. Here are the options.
 
 ```
-python3 account_resiliency_analyser.py --help
-usage: account_resiliency_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL}
+python3 account_analyser.py --help
+usage: account_analyser.py -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL}
                                       [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} ...] -r REGIONS [REGIONS ...] [-h]
                                       [-m MAX_CONCURRENT_THREADS] [-o OUTPUT_FOLDER_NAME] [-b BUCKET_NAME] [--event-bus-arn EVENT_BUS_ARN] [--aws-profile AWS_PROFILE_NAME]
                                       [--aws-assume-role AWS_ASSUME_ROLE_NAME] [--log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [--single-threaded] [--truncate-output] [--filename-with-accountid]
                                       [--report-only-issues]
 
-Generate resiliency findings for different services
+Generate fault tolerance findings for different services
 
 Required arguments:
   -s {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...], --services {vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} [{vpce,dms,docdb,sgw,efs,opensearch,fsx,lambda,elasticache,dax,globalaccelerator,rds,memorydb,dx,cloudhsm,ALL} ...]
-                        Indicate which service(s) you want to fetch resiliency findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax',
+                        Indicate which service(s) you want to fetch fault tolerance findings for. Options are ['vpce', 'dms', 'docdb', 'sgw', 'efs', 'opensearch', 'fsx', 'lambda', 'elasticache', 'dax',
                         'globalaccelerator', 'rds', 'memorydb', 'dx', 'cloudhsm']. Use 'ALL' for all services
   -r REGIONS [REGIONS ...], --regions REGIONS [REGIONS ...]
-                        Indicate which region(s) you want to fetch resiliency findings for. Use "ALL" for all approved regions
+                        Indicate which region(s) you want to fetch fault tolerance findings for. Use "ALL" for all approved regions
 
 Optional arguments:
   -h, --help            show this message and exit
@@ -186,9 +186,9 @@ Optional arguments:
                         Name of the folder where findings output csv file and the run report csv file will be written. If it does not exist, it will be created. If a bucket name is also provided, then
                         the folder will be looked for under the bucket, and if not present, will be created If a bucket name is not provided, then this folder will be expected under the directory in
                         which the script is ran. In case a bucket is provided, the files will be generated in this folder first and then pushed to the bucket Please ensure there is a forward slash '/'
-                        at the end of the folder path Output file name will be of the format Resiliency_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example:
-                        Resiliency_Findings_123456789101_TestAccount_2022_11_01.csv If you do not use the --filename-with-accountid option, the output file name will be of the format:
-                        Resiliency_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Resiliency_Findings_2022_11_01.csv
+                        at the end of the folder path Output file name will be of the format Fault_Tolerance_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example:
+                        Fault_Tolerance_Findings_123456789101_TestAccount_2022_11_01.csv If you do not use the --filename-with-accountid option, the output file name will be of the format:
+                        Fault_Tolerance_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_2022_11_01.csv
   -b BUCKET_NAME, --bucket BUCKET_NAME
                         Name of the bucket where findings output csv file and the run report csv file will be uploaded to
   --event-bus-arn EVENT_BUS_ARN
@@ -216,7 +216,7 @@ Optional arguments:
 
 Instead of installing Python and the dependencies, you can just use the Docker file and run the tool as a container. Here is how to do it.
 
-1. Clone the repo and bulid the image by running the command `docker build . -t resiliency_analyser`
+1. Clone the repo and bulid the image by running the command `docker build . -t fault_tolerance_analyser`
 
 2. If you are using an AWS profile use the following command (note how the credentials file is mapped into the container so that the container will have access to the credentials). Also note that the second volume being mapped is the folder into which the output file to be written.
 
@@ -224,7 +224,7 @@ Instead of installing Python and the dependencies, you can just use the Docker f
 docker run \
     -v $HOME/.aws/credentials:/root/.aws/credentials:ro \
     -v $PWD/src/output/:/src/output/:rw \
-    resiliency_analyser \
+    fault_tolerance_analyser \
     --regions us-east-1 \
     --services lambda opensearch docdb rds \
     --truncate-output
@@ -238,7 +238,7 @@ docker run \
     -e AWS_ACCESS_KEY_ID \
     -e AWS_SECRET_ACCESS_KEY \
     -e AWS_SESSION_TOKEN \
-    resiliency_analyser \
+    fault_tolerance_analyser \
     --regions us-east-1 \
     --services lambda opensearch docdb rds \
     --truncate-output
@@ -249,7 +249,7 @@ docker run \
 ```
 docker run \
     -v $PWD/src/output/:/src/output/:rw \
-    resiliency_analyser \
+    fault_tolerance_analyser \
     --regions us-east-1 \
     --services lambda opensearch docdb rds \
     --truncate-output
@@ -338,13 +338,13 @@ The following scenarios are tagged as potential issue by this tool:
 
 There are two main classes:
 
-### ServiceResiliencyAnalyser
-The ServiceResiliencyAnalyser is an abstract class from which all the service specific analysers are inherited. The service specific analysers contain the logic to identify potential issues for a given region.
+### ServiceAnalyser
+The ServiceAnalyser is an abstract class from which all the service specific analysers are inherited. The service specific analysers contain the logic to identify potential issues for a given region.
 
-### AccountResiliencyAnalyser
+### AccountAnalyser
 An object of this class is initiated as part of the "main" functionality. This loops through all the services and regions and instantiates the service specific analyser for each region+service combination and triggers the method to gather the findings in that service specific analyser. Once the findings are received, it writes it to a file.
 
-The AccountResiliencyAnalyser logic can run either in multi-threaded or single-threaded mode. In multi-threaded mode, the analyser for each service+region combination runs in a separate thread. This is the default mode. This saves a lot of time as there are 14 analysers running making API calls and that too across multiple regions.
+The AccountAnalyser logic can run either in multi-threaded or single-threaded mode. In multi-threaded mode, the analyser for each service+region combination runs in a separate thread. This is the default mode. This saves a lot of time as there are 14 analysers running making API calls and that too across multiple regions.
 
 In multi-threaded mode, care is taken to ensure that when writing the findings to an output file, multiple threads do not try to do it at the same time (with the help of a lock).
 
