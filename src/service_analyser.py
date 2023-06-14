@@ -132,7 +132,7 @@ class ServiceAnalyser(metaclass = ABCMeta):
                     {
                         'Time': datetime.datetime.now().astimezone(),
                         'Source': 'FaultToleranceAnalyser',
-                        'DetailType': 'FaultToleranceissue',
+                        'DetailType': 'FaultToleranceIssue',
                         'Detail': json.dumps(finding_rec),
                         'EventBusName' : utils.config_info.event_bus_arn
                     }
