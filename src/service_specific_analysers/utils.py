@@ -236,7 +236,7 @@ def get_config_info():
                             Please ensure there is a forward slash '/' at the end of the folder path
                             Output file name will be of the format Fault_Tolerance_Findings_<account_id>_<account_name>_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_123456789101_TestAccount_2022_11_01.csv
                             If you do not use the --filename-with-accountid option, the output file name will be of the format:
-                            Fault_Tolerance_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_2022_11_01.csv''')
+                            Fault_Tolerance_Findings_Findings_<Run date in YYYY_MM_DD format>.csv. Example: Fault_Tolerance_Findings_2022_11_01.csv''')
     optional_params_group.add_argument('-b', '--bucket', dest='bucket_name',
                         default = None,
                         type=bucket_name_validator,

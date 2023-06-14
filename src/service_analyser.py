@@ -11,7 +11,7 @@ import datetime
 import csv
 import json
 
-class ServiceResiliencyAnalyser(metaclass = ABCMeta):
+class ServiceAnalyser(metaclass = ABCMeta):
 
     def __init__ (self, account_analyser, region, service):
         self.service = service
@@ -24,7 +24,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         if self.session:
             return self.session
         else:
-            return utils.get_aws_session(session_name = f"{self.service}_{self.region}_ResiliencyAnalyser")
+            return utils.get_aws_session(session_name = f"{self.service}_{self.region}_FaultToleranceAnalyser")
 
     @utils.log_func
     def get_and_write_findings(self):
@@ -95,7 +95,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
 
         #Log findings
         for finding_rec in self.findings:
-            if finding_rec['potential_single_az_issue']:
+            if finding_rec['potential_issue']:
                 logging.error(finding_rec['message'])
             else:
                 logging.info(finding_rec['message'])
@@ -108,7 +108,7 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
                     dict_writer = csv.DictWriter(output_file, self.account_analyser.keys)
                     if utils.config_info.report_only_issues: #If the "report-only-issues" flag is set, go through each finding and write out only those that are identified as a potential issue
                         for finding_rec in self.findings:
-                            if finding_rec['potential_single_az_issue']:
+                            if finding_rec['potential_issue']:
                                 dict_writer.writerow(finding_rec)
                     else: #If the "report-only-issues" flag is not set, then Write all findings
                         dict_writer.writerows(self.findings)
@@ -127,12 +127,12 @@ class ServiceResiliencyAnalyser(metaclass = ABCMeta):
         total_entries_count = 0
 
         for finding_rec in self.findings:
-            if (not utils.config_info.report_only_issues) or (utils.config_info.report_only_issues and finding_rec['potential_single_az_issue']):
+            if (not utils.config_info.report_only_issues) or (utils.config_info.report_only_issues and finding_rec['potential_issue']):
                 entries.append(
                     {
                         'Time': datetime.datetime.now().astimezone(),
-                        'Source': 'ResiliencyAnalyser',
-                        'DetailType': 'Resiliencyissue',
+                        'Source': 'FaultToleranceAnalyser',
+                        'DetailType': 'FaultToleranceissue',
                         'Detail': json.dumps(finding_rec),
                         'EventBusName' : utils.config_info.event_bus_arn
                     }

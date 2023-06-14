@@ -4,9 +4,9 @@
 import boto3
 import logging
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class MemoryDBAnalyser(ServiceResiliencyAnalyser):
+class MemoryDBAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'memorydb')
@@ -23,13 +23,13 @@ class MemoryDBAnalyser(ServiceResiliencyAnalyser):
             issue_found = False
             for shard in cluster["Shards"]:
                 if len(shard["Nodes"]) == 1:
-                    finding_rec['potential_single_az_issue'] = True
+                    finding_rec['potential_issue'] = True
                     finding_rec['message'] = f"Memory DB Cluster: Shard {shard['Name']} in cluster {cluster['Name']} does not have any replicas"
                     issue_found = True
                     break            
 
             if not issue_found:
-                finding_rec['potential_single_az_issue'] = False
+                finding_rec['potential_issue'] = False
                 finding_rec['message'] = f"Memory DB Cluster: All shards in cluster {cluster['Name']} have replicas"
             self.findings.append(finding_rec)
 

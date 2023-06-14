@@ -4,9 +4,9 @@
 import boto3
 import logging
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class EFSAnalyser(ServiceResiliencyAnalyser):
+class EFSAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'efs')
@@ -18,13 +18,13 @@ class EFSAnalyser(ServiceResiliencyAnalyser):
         for fs in utils.invoke_aws_api_full_list(efs.describe_file_systems, "FileSystems"):
             finding_rec = self.get_finding_rec_from_response(fs)
             if "AvailabilityZoneId" in fs: #Single AZ File system
-                finding_rec['potential_single_az_issue'] = True
+                finding_rec['potential_issue'] = True
                 finding_rec['message'] = f"EFS: File system {fs['FileSystemId']} with ARN {fs['FileSystemArn'] } is a single AZ file system."
             elif fs["NumberOfMountTargets"] <= 1: #Multi AZ file system but mount target only in a single AZ
-                finding_rec['potential_single_az_issue'] = True
+                finding_rec['potential_issue'] = True
                 finding_rec['message'] = f"EFS: File system {fs['FileSystemId']} with ARN {fs['FileSystemArn'] } is a multi AZ enabled file system but with only one mount target."
             else:
-                finding_rec['potential_single_az_issue'] = False
+                finding_rec['potential_issue'] = False
                 finding_rec['message'] = f"EFS: File system {fs['FileSystemId']} with ARN {fs['FileSystemArn'] } is a multi AZ enabled file system with more than one mount target"
             self.findings.append(finding_rec)
 

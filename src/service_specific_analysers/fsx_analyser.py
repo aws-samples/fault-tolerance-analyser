@@ -4,9 +4,9 @@
 import boto3
 import logging
 import utils
-from service_resiliency_analyser import ServiceResiliencyAnalyser
+from service_analyser import ServiceAnalyser
 
-class FSXAnalyser(ServiceResiliencyAnalyser):
+class FSXAnalyser(ServiceAnalyser):
 
     def __init__(self, account_analyser, region):
         super().__init__(account_analyser, region, 'fsx')
@@ -20,10 +20,10 @@ class FSXAnalyser(ServiceResiliencyAnalyser):
             if fs['FileSystemType'] == "WINDOWS": #We look only at Windows File systems
                 finding_rec = self.get_finding_rec_from_response(fs)
                 if len(fs["SubnetIds"]) == 1:
-                    finding_rec['potential_single_az_issue'] = True
+                    finding_rec['potential_issue'] = True
                     finding_rec['message'] = f"FSX: Windows File system {fs['FileSystemId']} with ARN {fs['ResourceARN'] } is a single AZ file system. Please check."
                 else:
-                    finding_rec['potential_single_az_issue'] = False
+                    finding_rec['potential_issue'] = False
                     finding_rec['message'] = f"FSX: Windows File system {fs['FileSystemId']} with ARN {fs['ResourceARN'] } is a multi AZ file system"
                 self.findings.append(finding_rec)
 
