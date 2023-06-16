@@ -25,7 +25,9 @@
   7.15 [Cloud HSM](#715-cloud-hsm)  
 8. [Non-Functional Design](#8-non-functional-design)
 9. [Security](#9-security)
-10. [License](#10-license)
+10. [Contributing](#10-contributing)
+11. [Frequently Asked Questions (FAQ)](#11-frequently-asked-questions-faq)
+12. [License](#12-license)
 
 ## __1. Description__
 A tool to generate a list of potential fault tolerance issues across different services. Please note that these are only *potential* issues.
@@ -354,6 +356,45 @@ When all the analysers are run, the output file is uploaded to an S3 bucket, if 
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
-## __10. License__
+## __10. Contributing__
+
+See [CONTRIBUTING](CONTRIBUTING.md#contributing-via-pull-requests) for more information.
+
+## __11. Frequently Asked Questions (FAQ)__
+
+### What is the purpose of the Fault Tolerance tool?
+* The Fault Tolerance tool is designed to identify potential single points of failure across different AWS services (see listed of supported services [Functional Design](#7-functional-design)) in your account. By detecting resources that could cause disruption to the system if they were to fail, the tool helps customers build more fault tolerant workloads in AWS. This is in line with the guidance provided by the [Well-Architected Framework - Reliability Pillar - Use fault isolation to protect your workload](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/use-fault-isolation-to-protect-your-workload.html), which emphasizes the use of fault isolation to protect workloads.
+
+### How does the Fault Tolerance tool work?
+* The Fault Tolerance tool analyzes on your AWS account and generates a report that highlights potential fault tolerance issues across various AWS services. This report allows customers to identify resources where a single failure could disrupt the system and take steps to add redundancy to prevent downtime.
+
+### What permissions are needed to run the tool?
+* In order to check the required permission for the tool, please check the detailed instructions on the [Permissions needed to run the tool](#3-permissions-needed-to-run-the-tool) section. 
+
+### How can I install and run the Fault Tolerance Analyser tool?
+* In order to install the tool, please check the detailed instructions on the [Installation](#4-installation) section. 
+
+### What are the potential fault tolerance issues identified by the tool?
+* The Fault Tolerance Analyser tool checks various AWS services for potential issues. Some examples of issues identified include VPC endpoints with ENIs in a single subnet, DMS replication instances without multi-AZ configuration, DocumentDB clusters without replicas in different AZs, Lambda functions executing in a single AZ, and more. The [Functional Design](#7-functional-design) section provides a detailed explanation of risks for each supported service analyzed.
+
+### Can the tool be run as a Docker container?
+* Yes, the Fault Tolerance Analyser tool can be run as a Docker container. The [Running the tool as a Docker container](#6-running-the-tool-as-a-docker-container) section provides instructions on how to build the Docker image using the provided Dockerfile. You can then run the tool as a container, either with an AWS profile, AWS credentials exported as environment variables, or on an EC2 machine with an associated IAM role. The necessary volume mappings and command examples are provided in the [Running the tool as a Docker container](#6-running-the-tool-as-a-docker-container) secion.
+
+### Does the tool support uploading the generated report to an S3 bucket?
+* Yes, the tool supports uploading the generated CSV report to an S3 bucket. Customers can provide the name of the bucket as a command-line argument when running the tool. Once the analysis is completed, the tool will upload the report file to the specified S3 bucket, allowing customers to centralize the findings and access them from a secure and controlled location. You can provide the `-b BUCKET_NAME` or `--bucket BUCKET_NAME` flag when running the tool to specify the S3 bucket to have the reports output. 
+
+### Can I integrate the tool with my internal ticketing systems to track findings?
+* Yes, the tool supports sending findings to an Amazon Eventbridge event bus. This allows for integrating with any other system easily. You can use the `--event-bus-arn` option to provide the ARN of the event bus.
+
+### How is this tool different from Trusted Advisor and Resilience Hub?
+* The fault tolerance tool described here is a fully open-source tool, released under the MIT license, designed to generate a list of potential fault tolerance issues specific to different AWS services. It focuses on identifying potential issues related to fault tolerance and provides a detailed report that helps customers assess the fault tolerance of their workloads. Customers have the ability to customize and deploy the tool as per their requirements, making it a flexible and adaptable solution.
+* [AWS Trusted Advisor](https://aws.amazon.com/premiumsupport/technology/trusted-advisor/) is a service that draws upon best practices learned from serving hundreds of thousands of AWS customers. It inspects your AWS environment and provides recommendations when opportunities exist to save money, improve system availability and performance, or close security gaps. It specifically operates across five unique areas: Security, Performance, Cost Optimization, Fault Tolerance, and AWS Service Quotas.
+* [AWS Resilience Hub](https://aws.amazon.com/resilience-hub/) offers a centralized location to define, validate, and track the resiliency of your AWS applications. It helps protect your applications from disruptions, reduces recovery costs, and optimizes business continuity. You can describe your applications using AWS CloudFormation, Terraform state files, AWS Resource Groups, or choose from applications already defined in AWS Service Catalog AppRegistry.
+
+
+### What is the open-source nature of this tool, and can customers contribute to its development?
+* This tool is built using some open-source technologies and follows an open-source development approach. The code for this tool is hosted on a public repository (aws-samples), allowing customers to access and contribute to its development. Customers can submit bug reports, feature requests, and even contribute enhancements or additional service-specific analyzers. Open-source collaboration promotes transparency and encourages community involvement in improving the tool's functionality. Check the [Contributing](#10-contributing) section to learn more. 
+
+## __12. License__
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
