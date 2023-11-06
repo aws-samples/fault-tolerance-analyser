@@ -24,9 +24,9 @@ class ElasticacheAnalyser(ServiceAnalyser):
             finding_rec = self.get_output_from_memcache_single_node_redis_response(cluster)
             finding_rec['potential_issue'] = True
             if cluster['Engine'] == 'redis': #Single node redis cluster
-                finding_rec['message'] = "Elasticache-Redis cluster: {cluster['CacheClusterId']} is a single Node Elasticache-Redis cluster"
+                finding_rec['message'] = f"Elasticache-Redis cluster: {cluster['CacheClusterId']} is a single Node Elasticache-Redis cluster"
             else: #Memcached cluster
-                finding_rec['message'] = "Elasticache-Memcached cluster: {cluster['CacheClusterId']} is a single AZ issue even if there are multiple nodes in multiple AZs as the data is not replicated between nodes."
+                finding_rec['message'] = f"Elasticache-Memcached cluster: {cluster['CacheClusterId']} is a single AZ issue even if there are multiple nodes in multiple AZs as the data is not replicated between nodes."
             self.findings.append(finding_rec)
 
     def get_output_from_memcache_single_node_redis_response(self, cluster):
