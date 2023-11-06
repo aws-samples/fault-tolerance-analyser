@@ -23,6 +23,7 @@
   7.13 [Relational Database Service](#713-relational-database-service)   
   7.14 [Direct Connect](#714-direct-connect)  
   7.15 [Cloud HSM](#715-cloud-hsm)  
+  7.16 [Redshift](#716-redshift)  
 8. [Non-Functional Design](#8-non-functional-design)
 9. [Security](#9-security)
 10. [Contributing](#10-contributing)
@@ -263,17 +264,17 @@ docker run \
 It is a best practice to make sure that VPC Interface Endpoints have ENIs in more than one subnet. If a VPC endpoint has an ENI in only a single subnet, this tool will flag that as a potential issue. You cannot create VPC Endpoints in 2 different subnets in the same AZ. So, for the purpose of VPC endpoints, having multiple subnets implies multiple AZs.
 
 ### 7.2 Database Migration Service
-If the DMS Replication Instance is not configured with at least 2 instances in different availability zones, then it will be tagged as a potential issue.
+If the DMS Replication Instance is not configured with at least 2 instances in different availability zones, then it will be flagged as a potential issue.
 
 Reference: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.html
 
 ### 7.3 DocumentDB
-If the Document DB Cluster does not have a replica in a different AZ, it will be tagged as a potential issue.
+If the Document DB Cluster does not have a replica in a different AZ, it will be flagged as a potential issue.
 
 Reference: https://docs.aws.amazon.com/documentdb/latest/developerguide/failover.html
 
 ### 7.4 Storage Gateway
-Storage Gateway, when deployed on AWS, runs on a single Amazon EC2 instance. Therefore this is a single-point of availability failure for any applications expecting highly available access to application storage. Such storage gateways will be tagged as part of this check as a potential issue.
+Storage Gateway, when deployed on AWS, runs on a single Amazon EC2 instance. Therefore this is a single-point of availability failure for any applications expecting highly available access to application storage. Such storage gateways will be flagged as part of this check as a potential issue.
 
 Customers who are running Storage Gateway as a mechanism for providing file-based application storage that require high-availability should consider migrating their workloads to Amazon EFS, FSx, or other storage services that can provide higher availability architectures than Storage Gateway.
 
@@ -287,19 +288,19 @@ Customers that have chosen to deploy a One Zone class of storage, should ensure 
 For customers identified that are running a Standard class EFS deployment, where multi-az replication is provided by the service, they have only a single mount target to access their file systems.  If an availability issue were to occur in that availability zone, the customer would lose access to the EFS deployment, even though other AZs/subnets were unaffected.
 
 ### 7.6 Opensearch
-Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be tagged as a potential issue by this tool.
+Any single-node domains, as well as OpenSearch domains with multiple nodes all of which are deployed within the same Availability Zone would be flagged as a potential issue by this tool.
 
 ### 7.7 FSx
-Any FSx Windows systems deployed as Single-AZ is tagged as a potential issue by this tool.
+Any FSx Windows systems deployed as Single-AZ is flagged as a potential issue by this tool.
 
 Customers have the option to choose a Mulit-AZ or Single-AZ deployment when creating their file server deployment.
 
 ### 7.8 Lambda
-Any Lambda function that is configured only to execute in a single Availability Zone are tagged as a potential issue.
+Any Lambda function that is configured only to execute in a single Availability Zone are flagged as a potential issue.
 Reference: https://docs.aws.amazon.com/lambda/latest/dg/security-resilience.html
 
 ### 7.9 Elasticache
-The following clusters are tagged as potential Single AZ issues
+The following clusters are flagged as potential Single AZ issues
 
 1. All Memcached clusters - Data is not replicated between memcached cluster nodes. Even if a customer has deployed nodes across multiple availability zones, the data present on any nodes that have a loss of availability (related to those hosts or their AZ) will result in the data in those cache nodes being unavailable as well.
 
@@ -313,28 +314,31 @@ The following clusters are tagged as potential Single AZ issues
   Reference: https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Replication.Redis-RedisCluster.html
 
 ### 7.10 Memory DB
-Any Memory DB cluster that has a single node in a shard  is tagged as a potential issue by this tool.
+Any Memory DB cluster that has a single node in a shard is flagged as a potential issue by this tool.
 
 ### 7.11 DynamoDB Accelerator
-Any single-node clusters, as well as DAX clusters with multiple nodes all deployed within the same Availability Zone would be tagged as being a potential issue by this tool.
+Any single-node clusters, as well as DAX clusters with multiple nodes all deployed within the same Availability Zone would be flagged as being a potential issue by this tool.
 
 ### 7.12 Global Accelerator
 Any "Standard" Global accelerators that are configured to target endpoints consisting only of EC2 instances in a single Availability Zone are flagged by this tool. "Custom Routing" Global Accelerators are not covered.
 
 ### 7.13 Relational Database Service
-Any single AZ RDS Instance or Cluster is tagged as a potential issue by this tool.
+Any single AZ RDS Instance or Cluster is flagged as a potential issue by this tool.
 
 ### 7.14 Direct Connect
-The following scenarios are tagged as potential issue by this tool:
+The following scenarios are flagged as potential issue by this tool:
 1. Any region with a single Direct Connect connection.
 2. Any region where there is more than one direct connection, but all of them use the same location.
 3. Any Virtual Gateway with only one VIF
 4. Any Virtual Gateway with more than one VIF but all of the VIFs on the same direct connect Connection.
 
 ### 7.15 Cloud HSM
-The following scenarios are tagged as potential issue by this tool:
+The following scenarios are flagged as potential issue by this tool:
 1. Any cluster with a single HSM.
 2. Any cluster with multiple HSMs all of which are in a single AZ.
+
+### 7.16 Redshift
+Any Redshift cluster with all its nodes in a single AZ will be flagged as a potential issue by this tool.
 
 ## __8. Non-Functional Design__
 
